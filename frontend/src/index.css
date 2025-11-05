@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 195 100% 95%;
+    --foreground: 220 40% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 40% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 40% 20%;
+
+    --primary: 195 95% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 45 100% 55%;
+    --secondary-foreground: 220 40% 20%;
+
+    --muted: 195 30% 85%;
+    --muted-foreground: 220 20% 50%;
+
+    --accent: 140 70% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 195 30% 80%;
+    --input: 195 30% 80%;
+    --ring: 195 95% 50%;
+
+    --radius: 1rem;
+    
+    --game-orange: 25 95% 60%;
+    --game-purple: 270 70% 65%;
+    --game-green: 140 70% 55%;
+    
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 40% 15%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 40% 20%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 40% 20%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 195 95% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 45 100% 55%;
+    --secondary-foreground: 220 40% 20%;
+
+    --muted: 220 30% 30%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 140 70% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 30% 30%;
+    --input: 220 30% 30%;
+    --ring: 195 95% 50%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .game-card {
+    @apply bg-card rounded-[var(--radius)] shadow-[var(--shadow-card)] transition-all duration-300;
+  }
+  
+  .game-card-hover {
+    @apply hover:shadow-[var(--shadow-hover)] hover:scale-105 hover:-translate-y-1;
+  }
+  
+  .floating-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .bounce-animation {
+    animation: bounce 2s ease-in-out infinite;
+  }
+  
+  .rotate-slow {
+    animation: rotate 20s linear infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+  }
+  
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(5px);
+    }
+  }
+  
+  .pulse-ring {
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+}

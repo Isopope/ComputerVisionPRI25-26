@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+numpy
+Pillow
+opencv-python-headless
+# YOLO via ultralytics (nécessite torch); commentez si vous n'utilisez pas yolo
+ultralytics

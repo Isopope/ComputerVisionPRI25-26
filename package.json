@@ -1,0 +1,83 @@
+{
+  "name": "charlie-detector-app",
+  "version": "1.0.0",
+  "description": "Application de détection de Charlie avec IA",
+  "main": "electron/main.js",
+  "homepage": "http://./",
+  "private": true,
+  "scripts": {
+    "electron": "electron .",
+    "electron:dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\" \"wait-on http://localhost:8080 && electron .\"",
+    "frontend:dev": "cd frontend && npm run dev",
+    "backend:dev": "cd backend && .venv\\Scripts\\python main_yolo.py",
+    "frontend:build": "cd frontend && npm run build",
+    "build": "npm run frontend:build && electron-builder",
+    "dist": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "build": {
+    "appId": "com.polytech.charlie-detector",
+    "productName": "Charlie Detector",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend"
+      },
+      {
+        "from": "frontend/dist",
+        "to": "frontend"
+      }
+    ]
+  },
+  "dependencies": {
+    "axios": "^1.12.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^27.3.11",
+    "electron-builder": "^24.13.3",
+    "electron-is-dev": "^3.0.1",
+    "wait-on": "^7.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Isopope/ComputerVisionPRI25-26.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Isopope/ComputerVisionPRI25-26/issues"
+  }
+}
