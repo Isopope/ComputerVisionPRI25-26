@@ -30,14 +30,9 @@ const ModeSelection = () => {
         return;
       }
       
-      // For other games
-      if (selectedMode === "ai-pure") {
-        navigate(`/pregame?game=${gameFromUrl}&mode=${selectedMode}`);
-      } else if (selectedMode === "ai-vs-human") {
-        navigate(`/game?game=${gameFromUrl}&mode=${selectedMode}`);
-      } else {
-        navigate(`/game?game=${gameFromUrl}&mode=${selectedMode}`);
-      }
+      // Pour tous les autres jeux (Charlie, Dobble), passer par PreGame
+      // pour choisir le mode de capture (capture/upload/realtime)
+      navigate(`/pregame?game=${gameFromUrl}&mode=${selectedMode}`);
     }
   };
 

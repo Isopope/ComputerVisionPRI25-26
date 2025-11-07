@@ -152,10 +152,14 @@ const PreGame = () => {
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            🤖 Mode IA Pure – Préparation
+            {modeFromUrl === "ai-pure" && "🤖 Mode IA Pure – Préparation"}
+            {modeFromUrl === "ai-vs-human" && "⚔️ IA vs Humain – Préparation"}
+            {modeFromUrl === "explanatory" && "📚 Mode Explicatif – Préparation"}
           </h1>
           <p className="text-base text-muted-foreground">
-            Choisis comment l'IA va analyser ton image
+            {modeFromUrl === "ai-pure" && "Choisis comment l'IA va analyser ton image"}
+            {modeFromUrl === "ai-vs-human" && "Prépare le terrain pour défier l'IA"}
+            {modeFromUrl === "explanatory" && "Charge une image pour comprendre le processus"}
           </p>
         </div>
 

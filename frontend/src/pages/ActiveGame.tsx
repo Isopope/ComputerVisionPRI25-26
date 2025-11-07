@@ -7,6 +7,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Progress } from "@/components/ui/progress";
 import { BoundingBoxOverlay } from "@/components/BoundingBoxOverlay";
 import { useYoloAnalysis, useBackendHealth } from "@/hooks/useYolo";
+import { AIPureMode } from "@/components/game-modes/AIPureMode";
+import { AIvsHumanCharlieMode } from "@/components/game-modes/AIvsHumanCharlieMode";
 
 // Symboles pour les cartes Dobble
 const DOBBLE_SYMBOLS = ["🌟", "🎯", "🎨", "🎪", "🎮", "🚀", "⚡", "💎", "🔥", "🌈", "🎵", "🎭", "🎲", "🏆", "💫", "🎸", "🎺", "🎻", "🥁", "🎤"];
@@ -30,9 +32,13 @@ const ActiveGame = () => {
   const subModeFromUrl = searchParams.get("submode");
   const capturedImageFromState = location.state?.capturedImage;
   
-  // Hooks YOLO
-  const yoloMutation = useYoloAnalysis();
+  // Hooks YOLO - avec ou sans toast selon le mode
+  const yoloMutationWithToast = useYoloAnalysis({ showToast: true }); // Pour mode IA Pure
+  const yoloMutationSilent = useYoloAnalysis({ showToast: false }); // Pour mode IA vs Humain
   const { data: backendHealthy } = useBackendHealth();
+  
+  // Sélectionner le bon hook selon le mode
+  const yoloMutation = modeFromUrl === "ai-vs-human" ? yoloMutationSilent : yoloMutationWithToast;
   
   // États pour mode IA Pure - YOLO réel
   const [analysisStarted, setAnalysisStarted] = useState(false);
@@ -230,8 +236,21 @@ const ActiveGame = () => {
     }
   };
 
-  // Rendu pour le mode IA vs Humain - Où est Charlie
+  // Rendu pour le mode IA vs Humain - Où est Charlie (nouveau composant avec YOLO)
   if (modeFromUrl === "ai-vs-human" && gameFromUrl === "charlie") {
+    return (
+      <AIvsHumanCharlieMode
+        gameFromUrl={gameFromUrl}
+        modeFromUrl={modeFromUrl}
+        subModeFromUrl={subModeFromUrl}
+        capturedImageFromState={capturedImageFromState}
+        yoloMutation={yoloMutation}
+      />
+    );
+  }
+
+  // Ancien rendu de simulation Charlie (à supprimer plus tard)
+  if (false && modeFromUrl === "ai-vs-human" && gameFromUrl === "charlie_old") {
     return (
       <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
         <AnimatedBackground />
@@ -648,7 +667,20 @@ const ActiveGame = () => {
     );
   }
 
-  // Rendu pour le mode IA Pure (existant)
+  // Rendu pour le mode IA Pure (composant extrait)
+  if (modeFromUrl === "ai-pure") {
+    return (
+      <AIPureMode
+        gameFromUrl={gameFromUrl}
+        modeFromUrl={modeFromUrl}
+        subModeFromUrl={subModeFromUrl}
+        capturedImageFromState={capturedImageFromState}
+        yoloMutation={yoloMutation}
+      />
+    );
+  }
+
+  // Fallback - retour à l'accueil si mode non reconnu
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />

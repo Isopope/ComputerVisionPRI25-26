@@ -22,26 +22,32 @@ export const useBackendHealth = () => {
 
 /**
  * Hook pour l'analyse YOLO avec mutation
+ * @param options.showToast - Afficher ou non les notifications toast (défaut: true)
  */
-export const useYoloAnalysis = () => {
+export const useYoloAnalysis = (options?: { showToast?: boolean }) => {
   const { toast } = useToast();
+  const showToast = options?.showToast !== false; // Par défaut true
 
   return useMutation<AnalyzeCharlieResponse, Error, AnalyzeCharlieRequest>({
     mutationFn: (request: AnalyzeCharlieRequest) => apiService.analyzeCharlie(request),
     onSuccess: (data) => {
       console.log("✅ Analyse YOLO réussie:", data);
-      toast({
-        title: "✅ Analyse terminée",
-        description: `${data.result.bounding_boxes.length} élément(s) détecté(s) en ${data.result.processing_time.toFixed(2)}s`,
-      });
+      if (showToast) {
+        toast({
+          title: "✅ Analyse terminée",
+          description: `${data.result.bounding_boxes.length} élément(s) détecté(s) en ${data.result.processing_time.toFixed(2)}s`,
+        });
+      }
     },
     onError: (error) => {
       console.error("❌ Erreur lors de l'analyse YOLO:", error);
-      toast({
-        title: "❌ Erreur d'analyse",
-        description: error.message || "Impossible de contacter le backend. Vérifiez que le serveur Python est démarré.",
-        variant: "destructive",
-      });
+      if (showToast) {
+        toast({
+          title: "❌ Erreur d'analyse",
+          description: error.message || "Impossible de contacter le backend. Vérifiez que le serveur Python est démarré.",
+          variant: "destructive",
+        });
+      }
     },
   });
 };
