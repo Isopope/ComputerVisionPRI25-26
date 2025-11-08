@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
+import ChromeDinoGame from "react-chrome-dino";
 
 interface DinoGameCanvasProps {
   onJump?: () => void;
@@ -10,17 +11,37 @@ interface DinoGameCanvasProps {
 export const DinoGameCanvas = ({ onJump, onDuck, onGameOver }: DinoGameCanvasProps) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
-  const gameRef = useRef<any>(null);
+  const dinoRef = useRef<any>(null);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
+  const scoreCheckIntervalRef = useRef<number | null>(null);
 
+  // Expose methods to parent for gesture control
   useEffect(() => {
-    // Dynamically import and initialize react-chrome-dino
-    import("react-chrome-dino").then((module) => {
-      const ChromeDinoGame = module.default;
-      // Store reference if needed for control
-      gameRef.current = ChromeDinoGame;
-    });
-  }, []);
+    if (onJump) {
+      (window as any).dinoJump = () => {
+        const spaceEvent = new KeyboardEvent("keydown", {
+          code: "Space",
+          key: " ",
+          keyCode: 32,
+          bubbles: true,
+        });
+        window.dispatchEvent(spaceEvent);
+      };
+    }
+    if (onDuck) {
+      (window as any).dinoDuck = () => {
+        const downEvent = new KeyboardEvent("keydown", {
+          code: "ArrowDown",
+          key: "ArrowDown",
+          keyCode: 40,
+          bubbles: true,
+        });
+        window.dispatchEvent(downEvent);
+      };
+    }
+  }, [onJump, onDuck]);
 
+  // Handle keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space") {
@@ -34,37 +55,33 @@ export const DinoGameCanvas = ({ onJump, onDuck, onGameOver }: DinoGameCanvasPro
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onJump, onDuck]);
 
-  // Simulate jump action
-  const triggerJump = () => {
-    const spaceEvent = new KeyboardEvent("keydown", {
-      code: "Space",
-      key: " ",
-      keyCode: 32,
-      bubbles: true,
-    });
-    window.dispatchEvent(spaceEvent);
-  };
-
-  // Simulate duck action
-  const triggerDuck = () => {
-    const downEvent = new KeyboardEvent("keydown", {
-      code: "ArrowDown",
-      key: "ArrowDown",
-      keyCode: 40,
-      bubbles: true,
-    });
-    window.dispatchEvent(downEvent);
-  };
-
-  // Expose methods to parent
+  // Monitor game state and score
   useEffect(() => {
-    if (onJump) {
-      (window as any).dinoJump = triggerJump;
-    }
-    if (onDuck) {
-      (window as any).dinoDuck = triggerDuck;
-    }
-  }, [onJump, onDuck]);
+    const checkGameState = () => {
+      if (gameContainerRef.current) {
+        // Chercher l'élément de score du jeu
+        const scoreElement = gameContainerRef.current.querySelector('[style*="position"]');
+        
+        // Chercher s'il y a un écran de game over (texte "GAME OVER")
+        const gameOverText = gameContainerRef.current.innerText || "";
+        
+        if (gameOverText.includes("GAME OVER") || gameOverText.includes("Game Over")) {
+          if (!isGameOver) {
+            setIsGameOver(true);
+            onGameOver?.(score);
+          }
+        }
+      }
+    };
+
+    scoreCheckIntervalRef.current = window.setInterval(checkGameState, 500);
+
+    return () => {
+      if (scoreCheckIntervalRef.current) {
+        clearInterval(scoreCheckIntervalRef.current);
+      }
+    };
+  }, [isGameOver, score, onGameOver]);
 
   return (
     <Card className="p-6 bg-card">
@@ -78,22 +95,20 @@ export const DinoGameCanvas = ({ onJump, onDuck, onGameOver }: DinoGameCanvasPro
         </div>
         
         <div 
-          id="dino-game-container" 
-          className="w-full h-[400px] bg-background rounded-lg border border-border overflow-hidden"
+          ref={gameContainerRef}
+          className="w-full h-[400px] bg-background rounded-lg border border-border overflow-hidden flex items-center justify-center relative"
         >
-          {/* React Chrome Dino will be rendered here */}
-          <iframe
-            src="https://chromedino.com/"
-            className="w-full h-full border-0"
-            title="Dino Game"
-          />
+          {/* Chrome Dino Game Component */}
+          <div className="w-full h-full bg-white">
+            <ChromeDinoGame />
+          </div>
         </div>
 
         {isGameOver && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-4 bg-card p-6 rounded-lg">
               <h3 className="text-3xl font-bold text-foreground">Game Over!</h3>
-              <p className="text-xl text-muted-foreground">Score: {score}</p>
+              <p className="text-xl text-muted-foreground">Score final: {score}</p>
             </div>
           </div>
         )}
