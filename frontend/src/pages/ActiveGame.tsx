@@ -9,6 +9,7 @@ import { BoundingBoxOverlay } from "@/components/BoundingBoxOverlay";
 import { useYoloAnalysis, useBackendHealth } from "@/hooks/useYolo";
 import { AIPureMode } from "@/components/game-modes/AIPureMode";
 import { AIvsHumanCharlieMode } from "@/components/game-modes/AIvsHumanCharlieMode";
+import { AIvsHumanDobbleMode } from "@/components/game-modes/AIvsHumanDobbleMode";
 
 // Symboles pour les cartes Dobble
 const DOBBLE_SYMBOLS = ["🌟", "🎯", "🎨", "🎪", "🎮", "🚀", "⚡", "💎", "🔥", "🌈", "🎵", "🎭", "🎲", "🏆", "💫", "🎸", "🎺", "🎻", "🥁", "🎤"];
@@ -481,8 +482,21 @@ const ActiveGame = () => {
     );
   }
 
-  // Rendu pour le mode IA vs Humain - Dobble
+  // Rendu pour le mode IA vs Humain - Dobble (nouveau composant avec YOLO)
   if (modeFromUrl === "ai-vs-human" && gameFromUrl === "dobble") {
+    return (
+      <AIvsHumanDobbleMode
+        gameFromUrl={gameFromUrl}
+        modeFromUrl={modeFromUrl}
+        subModeFromUrl={subModeFromUrl}
+        capturedImageFromState={capturedImageFromState}
+        yoloMutation={yoloMutation}
+      />
+    );
+  }
+
+  // Ancien rendu de simulation Dobble (à supprimer plus tard)
+  if (false && modeFromUrl === "ai-vs-human" && gameFromUrl === "dobble_old") {
     return (
       <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
         <AnimatedBackground />
