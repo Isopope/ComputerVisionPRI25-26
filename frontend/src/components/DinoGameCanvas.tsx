@@ -15,30 +15,85 @@ export const DinoGameCanvas = ({ onJump, onDuck, onGameOver }: DinoGameCanvasPro
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const scoreCheckIntervalRef = useRef<number | null>(null);
 
-  // Expose methods to parent for gesture control
+  // Expose methods to parent for gesture control - ALWAYS register these!
   useEffect(() => {
-    if (onJump) {
-      (window as any).dinoJump = () => {
+    (window as any).dinoJump = () => {
+      console.log("🦕 JUMP called via gesture");
+      
+      // Try multiple methods to trigger jump
+      const dispatchKeyEvent = (target: any) => {
         const spaceEvent = new KeyboardEvent("keydown", {
           code: "Space",
           key: " ",
           keyCode: 32,
           bubbles: true,
+          cancelable: true,
         });
-        window.dispatchEvent(spaceEvent);
+        target.dispatchEvent(spaceEvent);
+        
+        // Also try keyup
+        const spaceEventUp = new KeyboardEvent("keyup", {
+          code: "Space",
+          key: " ",
+          keyCode: 32,
+          bubbles: true,
+          cancelable: true,
+        });
+        setTimeout(() => target.dispatchEvent(spaceEventUp), 100);
       };
-    }
-    if (onDuck) {
-      (window as any).dinoDuck = () => {
+      
+      // Dispatch on window
+      dispatchKeyEvent(window);
+      // Dispatch on document
+      dispatchKeyEvent(document);
+      // Dispatch on the game container
+      if (gameContainerRef.current) {
+        dispatchKeyEvent(gameContainerRef.current);
+      }
+      
+      onJump?.();
+    };
+
+    (window as any).dinoDuck = () => {
+      console.log("🦕 DUCK called via gesture");
+      
+      const dispatchKeyEvent = (target: any) => {
         const downEvent = new KeyboardEvent("keydown", {
           code: "ArrowDown",
           key: "ArrowDown",
           keyCode: 40,
           bubbles: true,
+          cancelable: true,
         });
-        window.dispatchEvent(downEvent);
+        target.dispatchEvent(downEvent);
+        
+        // Also try keyup
+        const downEventUp = new KeyboardEvent("keyup", {
+          code: "ArrowDown",
+          key: "ArrowDown",
+          keyCode: 40,
+          bubbles: true,
+          cancelable: true,
+        });
+        setTimeout(() => target.dispatchEvent(downEventUp), 100);
       };
-    }
+      
+      // Dispatch on window
+      dispatchKeyEvent(window);
+      // Dispatch on document
+      dispatchKeyEvent(document);
+      // Dispatch on the game container
+      if (gameContainerRef.current) {
+        dispatchKeyEvent(gameContainerRef.current);
+      }
+      
+      onDuck?.();
+    };
+
+    return () => {
+      delete (window as any).dinoJump;
+      delete (window as any).dinoDuck;
+    };
   }, [onJump, onDuck]);
 
   // Handle keyboard input

@@ -5,3 +5,5 @@ Pillow
 opencv-python-headless
 # YOLO via ultralytics (nécessite torch); commentez si vous n'utilisez pas yolo
 ultralytics
+# MediaPipe pour détection de gestes (main)
+mediapipe

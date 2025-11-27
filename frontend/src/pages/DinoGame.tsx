@@ -4,7 +4,6 @@ import { Home, RotateCcw } from "lucide-react";
 import { DinoGameCanvas } from "@/components/DinoGameCanvas";
 import { GestureDetector } from "@/components/GestureDetector";
 import { ScorePanel } from "@/components/ScorePanel";
-import { ExplainabilityPanel } from "@/components/ExplainabilityPanel";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -16,51 +15,49 @@ const DinoGame = () => {
   
   const mode = searchParams.get("mode") || "ai-vs-human";
   const [score, setScore] = useState(0);
-  const [currentGesture, setCurrentGesture] = useState("neutral");
-  const [gestureConfidence, setGestureConfidence] = useState(0);
-  const [handPosition, setHandPosition] = useState(50);
   const [isGameOver, setIsGameOver] = useState(false);
   
   const lastGestureRef = useRef<{ type: string; time: number } | null>(null);
 
   useEffect(() => {
-    // Redirect if no mode
-    if (!mode) {
+    // Valider le mode - Dino n'a que le mode ai-vs-human
+    if (mode !== "ai-vs-human") {
       navigate("/");
+      return;
     }
   }, [mode, navigate]);
 
   const handleGestureDetected = (gestureData: { gesture: string; confidence: number }) => {
     const now = Date.now();
     
-    // Debounce identical gestures (300ms cooldown)
+    console.log("📍 Gesture detected in DinoGame:", gestureData);
+    
+    // Débounce sur les gestes identiques (300ms cooldown)
     if (
       lastGestureRef.current &&
       lastGestureRef.current.type === gestureData.gesture &&
       now - lastGestureRef.current.time < 300
     ) {
+      console.log("⏱️ Debounced (same gesture within 300ms)");
       return;
     }
 
-    setCurrentGesture(gestureData.gesture);
-    setGestureConfidence(gestureData.confidence);
-    
-    // Update hand position for visualization (simulated for now)
-    if (gestureData.gesture === "jump") {
-      setHandPosition(20);
-    } else if (gestureData.gesture === "duck") {
-      setHandPosition(80);
-    } else {
-      setHandPosition(50);
-    }
-
-    // Trigger game actions
+    // Déclencher les actions du jeu
     if (gestureData.gesture === "jump" && typeof (window as any).dinoJump === "function") {
+      console.log("✅ Calling dinoJump()");
       (window as any).dinoJump();
       lastGestureRef.current = { type: "jump", time: now };
     } else if (gestureData.gesture === "duck" && typeof (window as any).dinoDuck === "function") {
+      console.log("✅ Calling dinoDuck()");
       (window as any).dinoDuck();
       lastGestureRef.current = { type: "duck", time: now };
+    } else {
+      console.log("❌ Functions not available:", {
+        isJump: gestureData.gesture === "jump",
+        hasDinoJump: typeof (window as any).dinoJump === "function",
+        isDuck: gestureData.gesture === "duck",
+        hasDinoDuck: typeof (window as any).dinoDuck === "function",
+      });
     }
   };
 
@@ -72,10 +69,8 @@ const DinoGame = () => {
   const handleReplay = () => {
     setScore(0);
     setIsGameOver(false);
-    window.location.reload(); // Simple reload to restart game
+    window.location.reload();
   };
-
-  const isExplicabilityMode = mode === "explicatif";
 
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
@@ -95,7 +90,7 @@ const DinoGame = () => {
           </Button>
           
           <h1 className="text-3xl font-bold text-foreground">
-            {t("dinoRun")}
+            🦕 {t("dinoRun") || "Dino Run"}
           </h1>
 
           <Button
@@ -120,37 +115,12 @@ const DinoGame = () => {
             />
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Détection de gestes + Score */}
           <div className="w-full lg:w-80 space-y-6">
             <GestureDetector onGestureDetected={handleGestureDetected} />
-            
-            {isExplicabilityMode ? (
-              <ExplainabilityPanel
-                gesture={currentGesture}
-                confidence={gestureConfidence}
-                handPosition={handPosition}
-              />
-            ) : (
-              <ScorePanel score={score} />
-            )}
+            <ScorePanel score={score} />
           </div>
         </div>
-
-        {/* Game Over Overlay */}
-        {isGameOver && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <div className="bg-card p-8 rounded-lg shadow-2xl text-center space-y-6 max-w-md">
-              <h2 className="text-4xl font-bold text-foreground">
-                {t("finalScore") || "Score final"}
-              </h2>
-              <p className="text-6xl font-bold text-primary">{score}</p>
-              <Button onClick={handleReplay} size="lg" className="w-full">
-                <RotateCcw className="w-5 h-5 mr-2" />
-                {t("replay") || "Rejouer"}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

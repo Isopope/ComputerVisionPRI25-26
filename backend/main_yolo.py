@@ -10,6 +10,16 @@ import cv2
 import numpy as np
 from PIL import Image
 from ultralytics import YOLO
+import mediapipe as mp
+
+# Imports pour GestureRecognizer
+try:
+    from mediapipe.tasks import python
+    from mediapipe.tasks.python import vision
+    MEDIAPIPE_TASKS_AVAILABLE = True
+except ImportError:
+    MEDIAPIPE_TASKS_AVAILABLE = False
+    print("⚠️  mediapipe.tasks not available, will use fallback")
 
 # Couleurs pour les bounding boxes (comme dans le Streamlit)
 BBOX_COLORS = [(164,120,87), (68,148,228), (93,97,209), (178,182,133), (88,159,106), 
@@ -38,6 +48,21 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class CharlieAnalyzeRequest(BaseModel):
+    image: str  # data URL
+    confidence_threshold: Optional[float] = 0.5
+    draw_boxes: Optional[bool] = True
+
+class DetectionResult(BaseModel):
+    classe: str
+    confiance: float
+    bbox: List[int]  # [xmin, ymin, xmax, ymax] en pixels absolus
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
@@ -247,6 +272,228 @@ async def analyze_charlie(req: CharlieAnalyzeRequest) -> Dict[str, Any]:
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur d'analyse: {str(e)}")
+
+# ============================================================================
+# MediaPipe GestureRecognizer pour détection de gestes (Dino Run)
+# ============================================================================
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+import os
+
+# Télécharger le modèle si nécessaire
+GESTURE_MODEL_PATH = "gesture_recognizer.task"
+if not os.path.exists(GESTURE_MODEL_PATH):
+    print(f"⚠️  Modèle {GESTURE_MODEL_PATH} introuvable. Utilisation de Hands pour fallback.")
+    GESTURE_MODEL_PATH = None
+    mp_hands = mp.solutions.hands
+    hands_detector = mp_hands.Hands(
+        static_image_mode=True,
+        max_num_hands=1,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.5
+    )
+    USE_GESTURE_RECOGNIZER = False
+else:
+    print(f"✅ Modèle GestureRecognizer trouvé: {GESTURE_MODEL_PATH}")
+    base_options = python.BaseOptions(model_asset_path=GESTURE_MODEL_PATH)
+    options = vision.GestureRecognizerOptions(base_options=base_options)
+    gesture_recognizer = vision.GestureRecognizer.create_from_options(options)
+    USE_GESTURE_RECOGNIZER = True
+
+def base64_to_opencv_image(base64_string: str) -> np.ndarray:
+    """Convertit une chaîne base64 en image OpenCV BGR"""
+    try:
+        binary = base64.b64decode(base64_string)
+        pil_image = Image.open(io.BytesIO(binary))
+        rgb_array = np.array(pil_image.convert("RGB"))
+        bgr_image = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
+        return bgr_image
+    except Exception as e:
+        raise ValueError(f"Erreur décodage base64: {str(e)}")
+
+def detect_hand_gesture(image: np.ndarray) -> Dict[str, Any]:
+    """
+    Détecte si la main est fermée (poing) ou ouverte.
+    Retourne: {gesture: 'jump'|'duck'|'none', confidence: float, landmarks: [...]}
+    
+    - jump = Open_Palm (main ouverte)
+    - duck = Closed_Fist (poing fermé)
+    - none = geste non reconnu ou pas de main
+    """
+    try:
+        # Convertir BGR -> RGB pour MediaPipe
+        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        h, w = rgb_image.shape[:2]
+        
+        if USE_GESTURE_RECOGNIZER:
+            # Utiliser le modèle GestureRecognizer officiel
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
+            recognition_result = gesture_recognizer.recognize(mp_image)
+            
+            # Extraire les landmarks aussi
+            landmarks = []
+            if recognition_result.hand_landmarks and len(recognition_result.hand_landmarks) > 0:
+                hand_landmarks = recognition_result.hand_landmarks[0]
+                for landmark in hand_landmarks:
+                    landmarks.append({
+                        "x": float(landmark.x),
+                        "y": float(landmark.y),
+                        "z": float(landmark.z) if landmark.z else 0.0
+                    })
+            
+            if not recognition_result.gestures or len(recognition_result.gestures) == 0:
+                return {"gesture": "none", "confidence": 0.0, "landmarks": landmarks}
+            
+            # Prendre le geste le plus confiant
+            gestures = recognition_result.gestures[0]  # Première main
+            if not gestures:
+                return {"gesture": "none", "confidence": 0.0, "landmarks": landmarks}
+            
+            top_gesture = gestures[0]
+            gesture_name = top_gesture.category_name
+            confidence = top_gesture.score
+            
+            # Log tous les gestes détectés
+            all_gestures_str = ", ".join([f"{g.category_name}({g.score:.2f})" for g in gestures[:3]])
+            print(f"[GESTURE] All detected: {all_gestures_str}")
+            
+            # Mapper les gestes MediaPipe à nos actions
+            # Open_Palm = main ouverte (JUMP)
+            # Closed_Fist = poing fermé (DUCK)
+            # Thumb_Up, Pointing_Up, Victory = gestes alternatifs pour JUMP
+            # Peace = doigts en V
+            
+            if gesture_name == "Open_Palm":
+                print(f"✅ JUMP detected (Open_Palm, conf: {confidence:.3f})")
+                return {"gesture": "jump", "confidence": float(confidence), "landmarks": landmarks}
+            elif gesture_name == "Thumb_Up":
+                # Pouce levé = JUMP aussi
+                print(f"✅ JUMP detected (Thumb_Up, conf: {confidence:.3f})")
+                return {"gesture": "jump", "confidence": float(confidence), "landmarks": landmarks}
+            elif gesture_name == "Victory":
+                # Doigts en V = JUMP
+                print(f"✅ JUMP detected (Victory, conf: {confidence:.3f})")
+                return {"gesture": "jump", "confidence": float(confidence), "landmarks": landmarks}
+            elif gesture_name == "Pointing_Up":
+                # Doigt pointé vers le haut = JUMP
+                print(f"✅ JUMP detected (Pointing_Up, conf: {confidence:.3f})")
+                return {"gesture": "jump", "confidence": float(confidence), "landmarks": landmarks}
+            elif gesture_name == "Closed_Fist":
+                print(f"✅ DUCK detected (Closed_Fist, conf: {confidence:.3f})")
+                return {"gesture": "duck", "confidence": float(confidence), "landmarks": landmarks}
+            elif gesture_name == "ILoveYou":
+                # Geste "I Love You" (doigt levé + auriculaire) = DUCK (abaissement)
+                print(f"✅ DUCK detected (ILoveYou, conf: {confidence:.3f})")
+                return {"gesture": "duck", "confidence": float(confidence), "landmarks": landmarks}
+            else:
+                print(f"⚠️  UNKNOWN gesture: {gesture_name}")
+                return {"gesture": "none", "confidence": 0.0, "landmarks": landmarks}
+        
+        else:
+            # Fallback: Utiliser Hands pour détection basique
+            results = hands_detector.process(rgb_image)
+            
+            # Extraire les landmarks
+            landmarks = []
+            if results.multi_hand_landmarks and len(results.multi_hand_landmarks) > 0:
+                hand_landmarks = results.multi_hand_landmarks[0]
+                for landmark in hand_landmarks.landmark:
+                    landmarks.append({
+                        "x": float(landmark.x),
+                        "y": float(landmark.y),
+                        "z": float(landmark.z)
+                    })
+            
+            if not results.multi_hand_landmarks or len(results.multi_hand_landmarks) == 0:
+                return {"gesture": "none", "confidence": 0.0, "landmarks": landmarks}
+            
+            # Prendre la première main détectée
+            hand_landmarks = results.multi_hand_landmarks[0]
+            
+            # Landmarks clés (indices MediaPipe):
+            # 0 = wrist (poignet)
+            # 4 = thumb tip, 8 = index tip, 12 = middle tip, 16 = ring tip, 20 = pinky tip
+            
+            wrist = hand_landmarks.landmark[0]  # Poignet
+            
+            # Points de bout des doigts (tips)
+            finger_tips = [
+                hand_landmarks.landmark[4],   # thumb tip
+                hand_landmarks.landmark[8],   # index tip
+                hand_landmarks.landmark[12],  # middle tip
+                hand_landmarks.landmark[16],  # ring tip
+                hand_landmarks.landmark[20],  # pinky tip
+            ]
+            
+            # Calculer distance moyenne entre poignet et bouts des doigts
+            distances = []
+            for i, tip in enumerate(finger_tips):
+                if tip.visibility > 0.3:
+                    # Distance en pixels
+                    dist_x = (tip.x - wrist.x) * w
+                    dist_y = (tip.y - wrist.y) * h
+                    dist = np.sqrt(dist_x**2 + dist_y**2)
+                    distances.append(dist)
+            
+            if len(distances) == 0:
+                return {"gesture": "none", "confidence": 0.0, "landmarks": landmarks}
+            
+            avg_distance = np.mean(distances)
+            
+            # DEBUG: Log les distances pour calibrage
+            print(f"[GESTURE-FALLBACK] avg_distance: {avg_distance:.2f}px, distances: {[f'{d:.1f}' for d in distances]}")
+            
+            # Seuils de détection:
+            if avg_distance > 60:
+                # Main ouverte -> JUMP
+                confidence = min(1.0, (avg_distance - 60) / 80)
+                print(f"✅ JUMP detected (distance: {avg_distance:.2f})")
+                return {"gesture": "jump", "confidence": float(confidence), "landmarks": landmarks}
+            elif avg_distance < 30:
+                # Poing fermé -> DUCK
+                confidence = 1.0 - (avg_distance / 35)
+                print(f"✅ DUCK detected (distance: {avg_distance:.2f})")
+                return {"gesture": "duck", "confidence": float(confidence), "landmarks": landmarks}
+            else:
+                # Ambigü ou transition
+                print(f"⚠️  AMBIGUOUS (distance: {avg_distance:.2f})")
+                return {"gesture": "none", "confidence": 0.5, "landmarks": landmarks}
+            
+    except Exception as e:
+        print(f"[ERROR] Gesture detection: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"gesture": "none", "confidence": 0.0}
+
+class DinoGestureRequest(BaseModel):
+    image: str  # base64 string (sans le préfixe data:image/jpeg;base64,)
+
+@app.post("/api/dino/detect-gesture")
+async def detect_gesture(req: DinoGestureRequest) -> Dict[str, Any]:
+    """Détecte le geste de la main (jump/duck) pour le jeu Dino"""
+    if not req.image:
+        raise HTTPException(status_code=400, detail="Image base64 manquante")
+    
+    try:
+        # Convertir base64 en image OpenCV
+        image_bgr = base64_to_opencv_image(req.image)
+        
+        # Détection du geste
+        gesture_result = detect_hand_gesture(image_bgr)
+        
+        return {
+            "success": True,
+            **gesture_result
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "gesture": "none",
+            "confidence": 0.0,
+            "error": str(e)
+        }
 
 if __name__ == "__main__":
     import uvicorn
