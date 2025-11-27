@@ -499,6 +499,25 @@ const ActiveGame = () => {
 
   // Rendu pour le mode IA vs Humain - Dobble (nouveau composant avec YOLO)
   if (modeFromUrl === "ai-vs-human" && gameFromUrl === "dobble") {
+    // Sécurité : ce mode ne fonctionne qu'avec le sous-mode "capture"
+    if (subModeFromUrl !== "capture") {
+      // Redirection vers l'accueil ou affichage d'erreur
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background p-6">
+          <div className="text-center space-y-4 max-w-md">
+            <h1 className="text-2xl font-bold text-destructive">Mode non disponible</h1>
+            <p className="text-muted-foreground">
+              Le mode "IA vs Humain" pour Dobble nécessite l'utilisation de la caméra en temps réel.
+              Le mode "{subModeFromUrl}" n'est pas supporté.
+            </p>
+            <Button onClick={() => navigate("/")} variant="default">
+              Retour à l'accueil
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <AIvsHumanDobbleMode
         gameFromUrl={gameFromUrl}

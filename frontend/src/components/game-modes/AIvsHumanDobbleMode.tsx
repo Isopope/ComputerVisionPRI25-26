@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Home, RotateCcw, Trophy } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
 
 interface AIvsHumanDobbleModeProps {
@@ -13,7 +14,7 @@ interface AIvsHumanDobbleModeProps {
   yoloMutation: any; // Type from useYoloAnalysis
 }
 
-type GamePhase = "analyzing" | "waiting_reveal" | "revealed" | "finished";
+type GamePhase = "analyzing" | "difficulty_selection" | "waiting_reveal" | "revealed" | "finished";
 
 interface SymbolMatch {
   symbol: string;
@@ -47,37 +48,29 @@ export const AIvsHumanDobbleMode = ({
   const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialisation : analyse YOLO au montage
+  // Initialisation : analyse YOLO au montage
   useEffect(() => {
+    // Sécurité supplémentaire : redirection si mauvais sous-mode
+    if (subModeFromUrl !== "capture") {
+      navigate("/");
+      return;
+    }
+
     if (capturedImageFromState && !aiDetectionResult && gamePhase === "analyzing") {
       // Lancer l'analyse YOLO immédiatement
       yoloMutation.mutate(
         { image: capturedImageFromState, game: gameFromUrl },
         {
           onSuccess: (data: any) => {
-            // L'analyse est terminée, on démarre le chronomètre maintenant
-            const now = Date.now();
-            gameStartTimeRef.current = now;
-
             setAiDetectionResult(data.result);
 
             // Extraire le symbole commun depuis les résultats YOLO
-            // Pour l'instant, on prend le premier symbole détecté comme "symbole commun"
-            // Cela sera amélioré quand le backend implémentera la logique Dobble
             if (data.result.bounding_boxes && data.result.bounding_boxes.length > 0) {
               setCommonSymbol(data.result.bounding_boxes[0]?.label || "🌟");
             }
 
-            setGamePhase("waiting_reveal");
-
-            // Générer le délai aléatoire 3-5s APRÈS la fin de l'analyse
-            const delay = 3000 + Math.random() * 2000;
-            setAiRevealDelay(delay);
-
-            // Programmer la révélation de l'IA après ce délai
-            revealTimeoutRef.current = setTimeout(() => {
-              setGamePhase("revealed");
-              determineWinner(null, delay);
-            }, delay);
+            // Passer à la sélection de difficulté
+            setGamePhase("difficulty_selection");
           },
           onError: (error: any) => {
             console.error("Erreur analyse YOLO:", error);
@@ -177,6 +170,22 @@ export const AIvsHumanDobbleMode = ({
     // Pas de feedback sur les clics incorrects (mode silencieux)
   };
 
+  // Fonction : gérer la sélection de difficulté
+  const handleDifficultySelect = (delay: number) => {
+    setAiRevealDelay(delay);
+    setGamePhase("waiting_reveal");
+
+    // Démarrer le chronomètre maintenant
+    const now = Date.now();
+    gameStartTimeRef.current = now;
+
+    // Programmer la révélation de l'IA après ce délai
+    revealTimeoutRef.current = setTimeout(() => {
+      setGamePhase("revealed");
+      determineWinner(null, delay);
+    }, delay);
+  };
+
   // Fonction : redémarrer le jeu
   const handleRestart = () => {
     setGamePhase("analyzing");
@@ -259,8 +268,8 @@ export const AIvsHumanDobbleMode = ({
                     <div
                       key={index}
                       className={`absolute border-4 rounded-lg ${humanFoundSymbol
-                          ? "border-green-500 bg-green-500/20"
-                          : "border-red-500 bg-red-500/20"
+                        ? "border-green-500 bg-green-500/20"
+                        : "border-red-500 bg-red-500/20"
                         }`}
                       style={{
                         left: `${box.x}%`,
@@ -271,8 +280,8 @@ export const AIvsHumanDobbleMode = ({
                     >
                       {index === 0 && (
                         <div className={`absolute -top-8 left-0 px-2 py-1 rounded text-xs font-bold whitespace-nowrap ${humanFoundSymbol
-                            ? "bg-green-500 text-white"
-                            : "bg-red-500 text-white"
+                          ? "bg-green-500 text-white"
+                          : "bg-red-500 text-white"
                           }`}>
                           {humanFoundSymbol ? "🎯 Symbole trouvé" : "🤖 Symbole commun"}
                         </div>
@@ -325,6 +334,7 @@ export const AIvsHumanDobbleMode = ({
               <span className="font-semibold">🤖 Statut IA</span>
               <span className="text-sm font-bold text-accent">
                 {gamePhase === "analyzing" && "Analyse..."}
+                {gamePhase === "difficulty_selection" && "Attente choix..."}
                 {gamePhase === "waiting_reveal" && "En attente"}
                 {(gamePhase === "revealed" || gamePhase === "finished") && "Révélée"}
               </span>
@@ -350,22 +360,22 @@ export const AIvsHumanDobbleMode = ({
               </div>
             ) : null}
 
-            {/* Symbole trouvé */}
-            {commonSymbol && (
+            {/* Symbole trouvé - Masqué tant que la partie n'est pas finie */}
+            {commonSymbol && (gamePhase === "revealed" || gamePhase === "finished") ? (
               <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                 <span className="font-semibold">🎯 Symbole commun</span>
                 <span className="text-2xl font-bold text-accent">
                   {commonSymbol}
                 </span>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Résultat final */}
           {winner && (
             <div className={`game-card p-6 text-center space-y-3 ${winner === "human" ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20" :
-                winner === "ai" ? "bg-gradient-to-br from-red-500/20 to-rose-500/20" :
-                  "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
+              winner === "ai" ? "bg-gradient-to-br from-red-500/20 to-rose-500/20" :
+                "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
               }`}>
               <div className="text-6xl">
                 {winner === "human" ? "🏆" : winner === "ai" ? "🤖" : "🤝"}
@@ -401,6 +411,49 @@ export const AIvsHumanDobbleMode = ({
           )}
         </div>
       </div>
+      <Dialog open={gamePhase === "difficulty_selection"} onOpenChange={() => { }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-center">⚡ Vitesse de l'IA</DialogTitle>
+            <DialogDescription className="text-center text-lg pt-2">
+              Notre IA est capable de détecter le symbole commun en <strong>moins d'une seconde</strong> !
+              <br /><br />
+              Pour vous laisser une chance, choisissez combien de temps d'avance vous souhaitez avoir :
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-center gap-2 border-red-200 hover:bg-red-50 hover:text-red-900"
+              onClick={() => handleDifficultySelect(3000)}
+            >
+              <div className="text-2xl">🔥</div>
+              <div className="font-bold text-lg">Expert (3s)</div>
+              <div className="text-xs text-muted-foreground">Pour les joueurs très rapides</div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-center gap-2 border-yellow-200 hover:bg-yellow-50 hover:text-yellow-900"
+              onClick={() => handleDifficultySelect(5000)}
+            >
+              <div className="text-2xl">⚖️</div>
+              <div className="font-bold text-lg">Intermédiaire (5s)</div>
+              <div className="text-xs text-muted-foreground">Le défi équilibré</div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-center gap-2 border-green-200 hover:bg-green-50 hover:text-green-900"
+              onClick={() => handleDifficultySelect(7000)}
+            >
+              <div className="text-2xl">🌱</div>
+              <div className="font-bold text-lg">Débutant (7s)</div>
+              <div className="text-xs text-muted-foreground">Prenez votre temps</div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
