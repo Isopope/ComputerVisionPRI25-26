@@ -21,4 +21,5 @@ export const getBackendUrl = (): string => {
 export const API_ENDPOINTS = {
   HEALTH: '/api/health',
   ANALYZE_CHARLIE: '/api/analyze/charlie',
+  ANALYZE_DOBBLE: '/api/analyze/dobble',
 } as const;

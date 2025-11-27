@@ -55,6 +55,26 @@ class ApiService {
   }
 
   /**
+   * Analyser une image pour détecter les symboles Dobble
+   */
+  async analyzeDobble(request: AnalyzeCharlieRequest): Promise<AnalyzeCharlieResponse> {
+    const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.ANALYZE_DOBBLE}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `Analyze Dobble failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * Vérifier si le backend est accessible
    */
   async isBackendAvailable(): Promise<boolean> {

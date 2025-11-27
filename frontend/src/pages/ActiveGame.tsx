@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Progress } from "@/components/ui/progress";
 import { BoundingBoxOverlay } from "@/components/BoundingBoxOverlay";
-import { useYoloAnalysis, useBackendHealth } from "@/hooks/useYolo";
+import { useYoloAnalysis, useBackendHealth, useYoloDobbleAnalysis } from "@/hooks/useYolo";
 import { AIPureMode } from "@/components/game-modes/AIPureMode";
 import { AIvsHumanCharlieMode } from "@/components/game-modes/AIvsHumanCharlieMode";
 import { AIvsHumanDobbleMode } from "@/components/game-modes/AIvsHumanDobbleMode";
@@ -34,12 +34,16 @@ const ActiveGame = () => {
   const capturedImageFromState = location.state?.capturedImage;
   
   // Hooks YOLO - avec ou sans toast selon le mode
-  const yoloMutationWithToast = useYoloAnalysis({ showToast: true }); // Pour mode IA Pure
-  const yoloMutationSilent = useYoloAnalysis({ showToast: false }); // Pour mode IA vs Humain
+  const yoloMutationWithToast = useYoloAnalysis({ showToast: true }); // Pour mode IA Pure - Charlie
+  const yoloMutationSilent = useYoloAnalysis({ showToast: false }); // Pour mode IA vs Humain - Charlie
+  const yoloDobbleMutationWithToast = useYoloDobbleAnalysis({ showToast: true }); // Pour mode IA Pure - Dobble
+  const yoloDobbleMutationSilent = useYoloDobbleAnalysis({ showToast: false }); // Pour mode IA vs Humain - Dobble
   const { data: backendHealthy } = useBackendHealth();
   
-  // Sélectionner le bon hook selon le mode
-  const yoloMutation = modeFromUrl === "ai-vs-human" ? yoloMutationSilent : yoloMutationWithToast;
+  // Sélectionner le bon hook selon le mode et le jeu
+  const yoloMutation = gameFromUrl === "dobble" 
+    ? (modeFromUrl === "ai-vs-human" ? yoloDobbleMutationSilent : yoloDobbleMutationWithToast)
+    : (modeFromUrl === "ai-vs-human" ? yoloMutationSilent : yoloMutationWithToast);
   
   // États pour mode IA Pure - YOLO réel
   const [analysisStarted, setAnalysisStarted] = useState(false);

@@ -51,3 +51,35 @@ export const useYoloAnalysis = (options?: { showToast?: boolean }) => {
     },
   });
 };
+
+/**
+ * Hook pour l'analyse Dobble
+ * @param options.showToast - Afficher ou non les notifications toast (défaut: true)
+ */
+export const useYoloDobbleAnalysis = (options?: { showToast?: boolean }) => {
+  const { toast } = useToast();
+  const showToast = options?.showToast !== false; // Par défaut true
+
+  return useMutation<AnalyzeCharlieResponse, Error, AnalyzeCharlieRequest>({
+    mutationFn: (request: AnalyzeCharlieRequest) => apiService.analyzeDobble(request),
+    onSuccess: (data) => {
+      console.log("✅ Analyse Dobble réussie:", data);
+      if (showToast) {
+        toast({
+          title: "✅ Analyse Dobble terminée",
+          description: `${data.result.bounding_boxes.length} symbole(s) détecté(s) en ${data.result.processing_time.toFixed(2)}s`,
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("❌ Erreur lors de l'analyse Dobble:", error);
+      if (showToast) {
+        toast({
+          title: "❌ Erreur d'analyse Dobble",
+          description: error.message || "Impossible de contacter le backend. Vérifiez que le serveur Python est démarré.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+};
