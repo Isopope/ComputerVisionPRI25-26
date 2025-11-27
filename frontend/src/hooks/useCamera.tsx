@@ -8,20 +8,24 @@ export const useCamera = () => {
 
   const startCamera = async () => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("API getUserMedia non disponible. Utilisez HTTPS ou localhost.");
+      }
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480 },
         audio: false,
       });
-      
+
       setStream(mediaStream);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         videoRef.current.onloadedmetadata = () => {
           setIsReady(true);
         };
       }
-      
+
       setError(null);
     } catch (err) {
       console.error("Camera error:", err);

@@ -9,7 +9,7 @@
     "electron": "electron .",
     "electron:dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\" \"wait-on http://localhost:8080 && electron .\"",
     "frontend:dev": "cd frontend && npm run dev",
-    "backend:dev": "cd backend && .venv\\Scripts\\python main_yolo.py",
+    "backend:dev": "cd backend && .venv\\Scripts\\python main.py",
     "frontend:build": "cd frontend && npm run build",
     "build": "npm run frontend:build && electron-builder",
     "dist": "npm run build",

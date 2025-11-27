@@ -10,6 +10,7 @@ import { useYoloAnalysis, useBackendHealth, useYoloDobbleAnalysis } from "@/hook
 import { AIPureMode } from "@/components/game-modes/AIPureMode";
 import { AIvsHumanCharlieMode } from "@/components/game-modes/AIvsHumanCharlieMode";
 import { AIvsHumanDobbleMode } from "@/components/game-modes/AIvsHumanDobbleMode";
+import { RealtimeDobbleMode } from "@/components/game-modes/RealtimeDobbleMode";
 
 // Symboles pour les cartes Dobble
 const DOBBLE_SYMBOLS = ["🌟", "🎯", "🎨", "🎪", "🎮", "🚀", "⚡", "💎", "🔥", "🌈", "🎵", "🎭", "🎲", "🏆", "💫", "🎸", "🎺", "🎻", "🥁", "🎤"];
@@ -27,24 +28,24 @@ const ActiveGame = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const { t } = useLanguage();
-  
+
   const gameFromUrl = searchParams.get("game");
   const modeFromUrl = searchParams.get("mode");
   const subModeFromUrl = searchParams.get("submode");
   const capturedImageFromState = location.state?.capturedImage;
-  
+
   // Hooks YOLO - avec ou sans toast selon le mode
   const yoloMutationWithToast = useYoloAnalysis({ showToast: true }); // Pour mode IA Pure - Charlie
   const yoloMutationSilent = useYoloAnalysis({ showToast: false }); // Pour mode IA vs Humain - Charlie
   const yoloDobbleMutationWithToast = useYoloDobbleAnalysis({ showToast: true }); // Pour mode IA Pure - Dobble
   const yoloDobbleMutationSilent = useYoloDobbleAnalysis({ showToast: false }); // Pour mode IA vs Humain - Dobble
   const { data: backendHealthy } = useBackendHealth();
-  
+
   // Sélectionner le bon hook selon le mode et le jeu
-  const yoloMutation = gameFromUrl === "dobble" 
+  const yoloMutation = gameFromUrl === "dobble"
     ? (modeFromUrl === "ai-vs-human" ? yoloDobbleMutationSilent : yoloDobbleMutationWithToast)
     : (modeFromUrl === "ai-vs-human" ? yoloMutationSilent : yoloMutationWithToast);
-  
+
   // États pour mode IA Pure - YOLO réel
   const [analysisStarted, setAnalysisStarted] = useState(false);
 
@@ -193,7 +194,7 @@ const ActiveGame = () => {
     if (gameStatus !== "playing" || humanTime !== null) return;
 
     const elapsed = parseFloat(((Date.now() - gameStartTime) / 1000).toFixed(2));
-    
+
     if (symbol !== commonSymbol) {
       setClickedWrongSymbol(true);
       setTimeout(() => setClickedWrongSymbol(false), 500);
@@ -202,7 +203,7 @@ const ActiveGame = () => {
 
     setHumanTime(elapsed);
     setGameStatus("finished");
-    
+
     // Déterminer le gagnant
     if (aiTime !== null) {
       if (elapsed < aiTime) {
@@ -241,6 +242,16 @@ const ActiveGame = () => {
     }
   };
 
+  // Rendu pour le mode Temps Réel - Dobble
+  if (modeFromUrl === "ai-pure" && subModeFromUrl === "realtime" && gameFromUrl === "dobble") {
+    return (
+      <RealtimeDobbleMode
+        gameFromUrl={gameFromUrl}
+        modeFromUrl={modeFromUrl}
+      />
+    );
+  }
+
   // Rendu pour le mode IA vs Humain - Où est Charlie (nouveau composant avec YOLO)
   if (modeFromUrl === "ai-vs-human" && gameFromUrl === "charlie") {
     return (
@@ -259,7 +270,7 @@ const ActiveGame = () => {
     return (
       <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
         <AnimatedBackground />
-        
+
         {/* Navigation */}
         <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-4">
           <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
@@ -287,9 +298,9 @@ const ActiveGame = () => {
                 🤖 Zone IA
                 {aiTime && <span className="text-sm font-normal">({aiTime}s)</span>}
               </h2>
-              <div 
+              <div
                 className="relative w-full h-64 bg-gradient-to-br from-red-100 to-blue-100 rounded-lg overflow-hidden"
-                style={{ 
+                style={{
                   backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,.03) 10px, rgba(0,0,0,.03) 20px)',
                 }}
               >
@@ -297,12 +308,12 @@ const ActiveGame = () => {
                 <div className="absolute inset-0 flex items-center justify-center text-8xl opacity-20">
                   👥👥👥👥👥
                 </div>
-                
+
                 {/* Charlie caché */}
-                <div 
+                <div
                   className="absolute text-4xl transition-all"
-                  style={{ 
-                    left: `${charliePosition.x}%`, 
+                  style={{
+                    left: `${charliePosition.x}%`,
                     top: `${charliePosition.y}%`,
                     transform: 'translate(-50%, -50%)'
                   }}
@@ -312,10 +323,10 @@ const ActiveGame = () => {
 
                 {/* Bounding box IA */}
                 {aiFoundCharlie && (
-                  <div 
+                  <div
                     className="absolute border-4 border-primary rounded-lg animate-pulse"
-                    style={{ 
-                      left: `${charliePosition.x}%`, 
+                    style={{
+                      left: `${charliePosition.x}%`,
                       top: `${charliePosition.y}%`,
                       transform: 'translate(-50%, -50%)',
                       width: '60px',
@@ -342,10 +353,10 @@ const ActiveGame = () => {
                 👤 Ta Zone
                 {humanTime && <span className="text-sm font-normal">({humanTime}s)</span>}
               </h2>
-              <div 
+              <div
                 onClick={handleCharlieClick}
                 className="relative w-full h-64 bg-gradient-to-br from-red-100 to-blue-100 rounded-lg overflow-hidden cursor-crosshair"
-                style={{ 
+                style={{
                   backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,.03) 10px, rgba(0,0,0,.03) 20px)',
                 }}
               >
@@ -353,12 +364,12 @@ const ActiveGame = () => {
                 <div className="absolute inset-0 flex items-center justify-center text-8xl opacity-20">
                   👥👥👥👥👥
                 </div>
-                
+
                 {/* Charlie caché */}
-                <div 
+                <div
                   className="absolute text-4xl transition-all"
-                  style={{ 
-                    left: `${charliePosition.x}%`, 
+                  style={{
+                    left: `${charliePosition.x}%`,
                     top: `${charliePosition.y}%`,
                     transform: 'translate(-50%, -50%)'
                   }}
@@ -368,10 +379,10 @@ const ActiveGame = () => {
 
                 {/* Marqueur de clic utilisateur */}
                 {userClickPosition && !humanFoundCharlie && (
-                  <div 
+                  <div
                     className="absolute w-8 h-8 border-2 border-destructive rounded-full animate-ping"
-                    style={{ 
-                      left: `${userClickPosition.x}%`, 
+                    style={{
+                      left: `${userClickPosition.x}%`,
                       top: `${userClickPosition.y}%`,
                       transform: 'translate(-50%, -50%)'
                     }}
@@ -380,10 +391,10 @@ const ActiveGame = () => {
 
                 {/* Bounding box succès */}
                 {humanFoundCharlie && (
-                  <div 
+                  <div
                     className="absolute border-4 border-secondary rounded-lg"
-                    style={{ 
-                      left: `${charliePosition.x}%`, 
+                    style={{
+                      left: `${charliePosition.x}%`,
                       top: `${charliePosition.y}%`,
                       transform: 'translate(-50%, -50%)',
                       width: '60px',
@@ -461,9 +472,9 @@ const ActiveGame = () => {
 
                   <div className="p-3 bg-muted rounded-lg text-center">
                     <p className="text-sm font-semibold">
-                      {winner === "human" ? "🏆 Excellent ! Tu es plus rapide que l'IA !" : 
-                       winner === "ai" ? "💪 Réessaie, tu peux battre l'IA !" : 
-                       "🤝 Égalité parfaite !"}
+                      {winner === "human" ? "🏆 Excellent ! Tu es plus rapide que l'IA !" :
+                        winner === "ai" ? "💪 Réessaie, tu peux battre l'IA !" :
+                          "🤝 Égalité parfaite !"}
                     </p>
                   </div>
                 </div>
@@ -504,7 +515,7 @@ const ActiveGame = () => {
     return (
       <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
         <AnimatedBackground />
-        
+
         {/* Navigation */}
         <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-4">
           <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
@@ -536,9 +547,8 @@ const ActiveGame = () => {
                 {card1.map((symbol, idx) => (
                   <div
                     key={idx}
-                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all ${
-                      aiDetectedSymbol === symbol ? 'ring-4 ring-primary scale-110' : ''
-                    }`}
+                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all ${aiDetectedSymbol === symbol ? 'ring-4 ring-primary scale-110' : ''
+                      }`}
                   >
                     {symbol}
                   </div>
@@ -548,9 +558,8 @@ const ActiveGame = () => {
                 {card2.slice(0, 4).map((symbol, idx) => (
                   <div
                     key={idx}
-                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all ${
-                      aiDetectedSymbol === symbol ? 'ring-4 ring-primary scale-110' : ''
-                    }`}
+                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all ${aiDetectedSymbol === symbol ? 'ring-4 ring-primary scale-110' : ''
+                      }`}
                   >
                     {symbol}
                   </div>
@@ -575,9 +584,8 @@ const ActiveGame = () => {
                     key={idx}
                     onClick={() => handleSymbolClick(symbol)}
                     disabled={gameStatus !== "playing" || humanTime !== null}
-                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all hover:scale-110 hover:bg-accent disabled:cursor-not-allowed ${
-                      humanTime && symbol === commonSymbol ? 'ring-4 ring-secondary scale-110' : ''
-                    }`}
+                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all hover:scale-110 hover:bg-accent disabled:cursor-not-allowed ${humanTime && symbol === commonSymbol ? 'ring-4 ring-secondary scale-110' : ''
+                      }`}
                   >
                     {symbol}
                   </button>
@@ -589,9 +597,8 @@ const ActiveGame = () => {
                     key={idx}
                     onClick={() => handleSymbolClick(symbol)}
                     disabled={gameStatus !== "playing" || humanTime !== null}
-                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all hover:scale-110 hover:bg-accent disabled:cursor-not-allowed ${
-                      humanTime && symbol === commonSymbol ? 'ring-4 ring-secondary scale-110' : ''
-                    }`}
+                    className={`aspect-square flex items-center justify-center text-4xl bg-muted rounded-lg transition-all hover:scale-110 hover:bg-accent disabled:cursor-not-allowed ${humanTime && symbol === commonSymbol ? 'ring-4 ring-secondary scale-110' : ''
+                      }`}
                   >
                     {symbol}
                   </button>
@@ -702,7 +709,7 @@ const ActiveGame = () => {
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
       {/* Navigation en haut */}
       <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
         <Button
@@ -724,8 +731,8 @@ const ActiveGame = () => {
               {yoloMutation.isPending ? "🔍 Analyse en cours…" : "✅ Analyse terminée !"}
             </h1>
             <p className="text-base text-muted-foreground">
-              {yoloMutation.isPending 
-                ? "L'IA cherche l'élément cible…" 
+              {yoloMutation.isPending
+                ? "L'IA cherche l'élément cible…"
                 : "L'IA a trouvé tous les éléments !"}
             </p>
           </div>
@@ -735,9 +742,9 @@ const ActiveGame = () => {
             <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center relative">
               {/* Image capturée ou uploadée */}
               {capturedImageFromState ? (
-                <img 
-                  src={capturedImageFromState} 
-                  alt="Captured" 
+                <img
+                  src={capturedImageFromState}
+                  alt="Captured"
                   className="w-full h-full object-contain"
                 />
               ) : (
@@ -745,21 +752,21 @@ const ActiveGame = () => {
                   <div className="text-6xl">{gameFromUrl === "charlie" ? "🧍" : "🎯"}</div>
                 </div>
               )}
-              
+
               {/* Overlay IA - Bounding boxes de YOLO */}
               {!yoloMutation.isPending && yoloMutation.data && capturedImageFromState && (
-                <BoundingBoxOverlay 
+                <BoundingBoxOverlay
                   image={capturedImageFromState}
                   boundingBoxes={yoloMutation.data.result.bounding_boxes}
                 />
               )}
-              
+
               {/* Heatmap overlay */}
               {yoloMutation.isPending && (
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 animate-pulse" />
               )}
             </div>
-            
+
             {/* Annotations */}
             {!yoloMutation.isPending && yoloMutation.data && (
               <div className="absolute top-4 right-4">
@@ -806,9 +813,9 @@ const ActiveGame = () => {
                   {yoloMutation.data ? Math.round(yoloMutation.data.result.confidence * 100) : 0}%
                 </span>
               </div>
-              <Progress 
-                value={yoloMutation.data ? yoloMutation.data.result.confidence * 100 : 0} 
-                className="h-3" 
+              <Progress
+                value={yoloMutation.data ? yoloMutation.data.result.confidence * 100 : 0}
+                className="h-3"
               />
             </div>
 
@@ -828,7 +835,7 @@ const ActiveGame = () => {
                   {yoloMutation.data ? yoloMutation.data.result.bounding_boxes.length : 0}
                 </span>
               </div>
-              
+
               {yoloMutation.data && yoloMutation.data.result.bounding_boxes.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center p-2 bg-accent/10 rounded">
@@ -848,8 +855,8 @@ const ActiveGame = () => {
             </div>
 
             {/* Bouton explication */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full gap-2"
               onClick={() => {
                 if (yoloMutation.data) {

@@ -13,7 +13,7 @@ const PreGame = () => {
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { toast } = useToast();
-  
+
   const gameFromUrl = searchParams.get("game");
   const modeFromUrl = searchParams.get("mode");
   const [selectedSubMode, setSelectedSubMode] = useState<SubMode>(null);
@@ -35,7 +35,7 @@ const PreGame = () => {
     if (selectedSubMode === "capture" && !stream) {
       startCamera();
     }
-    
+
     // Nettoyer le stream quand on quitte
     return () => {
       if (stream) {
@@ -46,8 +46,12 @@ const PreGame = () => {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "environment" } 
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("API getUserMedia non disponible");
+      }
+
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }
       });
       setStream(mediaStream);
       if (videoRef.current) {
@@ -127,7 +131,7 @@ const PreGame = () => {
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
       {/* Navigation en haut */}
       <div className="relative z-10 w-full max-w-lg mx-auto flex gap-3 mb-6">
         <Button
@@ -171,9 +175,8 @@ const PreGame = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div
               onClick={() => setSelectedSubMode("capture")}
-              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${
-                selectedSubMode === "capture" ? "ring-4 ring-primary pulse-ring" : ""
-              }`}
+              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "capture" ? "ring-4 ring-primary pulse-ring" : ""
+                }`}
             >
               <div className="bg-primary text-primary-foreground p-4 rounded-full">
                 <Camera className="w-12 h-12" />
@@ -188,9 +191,8 @@ const PreGame = () => {
 
             <div
               onClick={() => setSelectedSubMode("upload")}
-              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${
-                selectedSubMode === "upload" ? "ring-4 ring-primary pulse-ring" : ""
-              }`}
+              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "upload" ? "ring-4 ring-primary pulse-ring" : ""
+                }`}
             >
               <div className="bg-accent text-accent-foreground p-4 rounded-full">
                 <Upload className="w-12 h-12" />
@@ -205,9 +207,8 @@ const PreGame = () => {
 
             <div
               onClick={() => setSelectedSubMode("realtime")}
-              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${
-                selectedSubMode === "realtime" ? "ring-4 ring-primary pulse-ring" : ""
-              }`}
+              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "realtime" ? "ring-4 ring-primary pulse-ring" : ""
+                }`}
             >
               <div className="bg-secondary text-secondary-foreground p-4 rounded-full rotate-slow">
                 <Video className="w-12 h-12" />
@@ -233,7 +234,7 @@ const PreGame = () => {
                 📷 {capturedImage ? "Image capturée" : "Aperçu caméra"}
               </h3>
             </div>
-            
+
             {!capturedImage ? (
               <div className="relative rounded-lg overflow-hidden bg-muted">
                 <video
@@ -280,9 +281,9 @@ const PreGame = () => {
                 📁 {uploadedImage ? "Image uploadée" : "Upload ton image"}
               </h3>
             </div>
-            
+
             {!uploadedImage ? (
-              <div 
+              <div
                 className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -355,7 +356,7 @@ const PreGame = () => {
           size="xl"
           onClick={handleLaunch}
           disabled={
-            !selectedSubMode || 
+            !selectedSubMode ||
             (selectedSubMode === "capture" && !capturedImage) ||
             (selectedSubMode === "upload" && !uploadedImage)
           }

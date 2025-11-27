@@ -68,7 +68,7 @@ async function startBackend() {
         ? path.join(backendPath, '.venv', 'Scripts', 'python.exe')
         : path.join(backendPath, '.venv', 'Scripts', 'python.exe');
 
-      const scriptPath = path.join(backendPath, 'main_yolo.py');
+      const scriptPath = path.join(backendPath, 'main.py');
 
       console.log(`🐍 Python: ${pythonPath}`);
       console.log(`📄 Script: ${scriptPath}`);

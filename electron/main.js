@@ -79,7 +79,7 @@ async function startBackend() {
         ? path.join(backendPath, '.venv', 'Scripts', 'python.exe')
         : path.join(backendPath, '.venv', 'Scripts', 'python.exe');
 
-      const scriptPath = path.join(backendPath, 'main_yolo.py');
+      const scriptPath = path.join(backendPath, 'main.py');
 
       console.log(`🐍 Python: ${pythonPath}`);
       console.log(`📄 Script: ${scriptPath}`);
@@ -261,12 +261,12 @@ async function loadApplication() {
       const frontendPath = path.join(process.resourcesPath, 'frontend', 'index.html');
       console.log(`📁 Chemin frontend production: ${frontendPath}`);
       console.log(`📁 resourcesPath: ${process.resourcesPath}`);
-      
+
       // Vérifier que le fichier existe
       if (!fs.existsSync(frontendPath)) {
         throw new Error(`Frontend index.html non trouvé: ${frontendPath}\n\nVérifiez que frontend/dist est inclus dans extraResources`);
       }
-      
+
       frontendUrl = `file://${frontendPath}`;
     }
 
