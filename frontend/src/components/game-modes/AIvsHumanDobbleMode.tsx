@@ -30,7 +30,7 @@ export const AIvsHumanDobbleMode = ({
 }: AIvsHumanDobbleModeProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  
+
   // États du jeu
   const [gamePhase, setGamePhase] = useState<GamePhase>("analyzing");
   const [aiDetectionResult, setAiDetectionResult] = useState<any>(null);
@@ -41,7 +41,7 @@ export const AIvsHumanDobbleMode = ({
   const [humanClickedSymbol, setHumanClickedSymbol] = useState<string | null>(null);
   const [winner, setWinner] = useState<"human" | "ai" | "tie" | null>(null);
   const [commonSymbol, setCommonSymbol] = useState<string | null>(null);
-  
+
   const gameStartTimeRef = useRef<number>(0);
   const imageRef = useRef<HTMLImageElement>(null);
   const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,22 +57,22 @@ export const AIvsHumanDobbleMode = ({
             // L'analyse est terminée, on démarre le chronomètre maintenant
             const now = Date.now();
             gameStartTimeRef.current = now;
-            
+
             setAiDetectionResult(data.result);
-            
+
             // Extraire le symbole commun depuis les résultats YOLO
             // Pour l'instant, on prend le premier symbole détecté comme "symbole commun"
             // Cela sera amélioré quand le backend implémentera la logique Dobble
             if (data.result.bounding_boxes && data.result.bounding_boxes.length > 0) {
               setCommonSymbol(data.result.bounding_boxes[0]?.label || "🌟");
             }
-            
+
             setGamePhase("waiting_reveal");
-            
+
             // Générer le délai aléatoire 3-5s APRÈS la fin de l'analyse
             const delay = 3000 + Math.random() * 2000;
             setAiRevealDelay(delay);
-            
+
             // Programmer la révélation de l'IA après ce délai
             revealTimeoutRef.current = setTimeout(() => {
               setGamePhase("revealed");
@@ -100,14 +100,14 @@ export const AIvsHumanDobbleMode = ({
   const determineWinner = (clickTime: number | null, delay: number) => {
     // Empêcher les appels multiples
     if (winner !== null) return;
-    
+
     if (clickTime === null) {
       // Humain n'a pas trouvé avant la révélation - L'IA gagne
       setWinner("ai");
     } else {
       const elapsed = clickTime - gameStartTimeRef.current;
       const threshold = delay - 500; // 0.5s avant révélation
-      
+
       if (elapsed < threshold) {
         // Humain a trouvé bien avant le délai
         setWinner("human");
@@ -125,42 +125,52 @@ export const AIvsHumanDobbleMode = ({
   // Fonction : gérer le clic de l'humain sur l'image
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (gamePhase !== "waiting_reveal" || !aiDetectionResult || !imageRef.current) return;
-    
+
     // Calculer la position du clic en pourcentage
     const rect = imageRef.current.getBoundingClientRect();
     const clickX = ((e.clientX - rect.left) / rect.width) * 100;
     const clickY = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     setHumanClickAttempts(prev => prev + 1);
-    
-    // Vérifier si le clic est proche du symbole commun
-    // Pour l'instant, on cherche le premier bounding box (symbole commun)
-    const aiBox = aiDetectionResult.bounding_boxes[0];
-    if (!aiBox) return;
-    
-    const aiCenterX = aiBox.x + aiBox.width / 2;
-    const aiCenterY = aiBox.y + aiBox.height / 2;
-    
-    // Calculer la distance
-    const dx = clickX - aiCenterX;
-    const dy = clickY - aiCenterY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
+    // Vérifier si le clic est proche de l'une des 2 occurrences du symbole commun
+    const boundingBoxes = aiDetectionResult.bounding_boxes;
+    if (!boundingBoxes || boundingBoxes.length === 0) return;
+
     // Tolérance de 10%
     const tolerance = 10;
-    
-    if (distance <= tolerance) {
+    let foundSymbol = false;
+    let clickedBox = null;
+
+    // Vérifier chaque bounding box (normalement 2 pour le symbole commun)
+    for (const box of boundingBoxes) {
+      const boxCenterX = box.x + box.width / 2;
+      const boxCenterY = box.y + box.height / 2;
+
+      // Calculer la distance
+      const dx = clickX - boxCenterX;
+      const dy = clickY - boxCenterY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance <= tolerance) {
+        foundSymbol = true;
+        clickedBox = box;
+        break;
+      }
+    }
+
+    if (foundSymbol && clickedBox) {
       // Humain a trouvé le symbole ! Annuler le timeout de l'IA
       if (revealTimeoutRef.current) {
         clearTimeout(revealTimeoutRef.current);
       }
-      
+
       const now = Date.now();
       setHumanClickTime(now);
       setHumanFoundSymbol(true);
-      setHumanClickedSymbol(aiBox.label || "?");
+      setHumanClickedSymbol(clickedBox.label || "?");
       setGamePhase("revealed");
-      
+
       // Déterminer le gagnant immédiatement
       determineWinner(now, aiRevealDelay);
     }
@@ -184,7 +194,7 @@ export const AIvsHumanDobbleMode = ({
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
       {/* Navigation */}
       <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
         <Button
@@ -217,23 +227,23 @@ export const AIvsHumanDobbleMode = ({
 
           {/* Zone centrale - Image interactive (deux cartes côte à côte) */}
           <div className="game-card p-6 flex-1 min-h-[500px] relative overflow-hidden">
-            <div 
+            <div
               className="w-full h-full bg-muted rounded-lg flex items-center justify-center relative cursor-crosshair"
               onClick={handleImageClick}
             >
               {/* Image des deux cartes */}
               {capturedImageFromState ? (
-                <img 
+                <img
                   ref={imageRef}
-                  src={capturedImageFromState} 
-                  alt="Find Common Symbol" 
+                  src={capturedImageFromState}
+                  alt="Find Common Symbol"
                   className="w-full h-full object-contain pointer-events-none select-none"
                   draggable={false}
                 />
               ) : (
                 <div className="text-6xl">🎴</div>
               )}
-              
+
               {/* Overlay IA en recherche */}
               {gamePhase === "waiting_reveal" && (
                 <div className="absolute top-4 left-4 bg-primary/90 text-primary-foreground px-4 py-2 rounded-full text-sm font-bold animate-pulse flex items-center gap-2">
@@ -241,30 +251,35 @@ export const AIvsHumanDobbleMode = ({
                   🤖 IA cherche...
                 </div>
               )}
-              
+
               {/* Révélation de la position du symbole commun */}
               {(gamePhase === "revealed" || gamePhase === "finished") && aiDetectionResult && imageRef.current && (
-                <div 
-                  className={`absolute border-4 rounded-lg ${
-                    humanFoundSymbol 
-                      ? "border-green-500 bg-green-500/20" 
-                      : "border-red-500 bg-red-500/20"
-                  }`}
-                  style={{
-                    left: `${aiDetectionResult.bounding_boxes[0]?.x}%`,
-                    top: `${aiDetectionResult.bounding_boxes[0]?.y}%`,
-                    width: `${aiDetectionResult.bounding_boxes[0]?.width}%`,
-                    height: `${aiDetectionResult.bounding_boxes[0]?.height}%`,
-                  }}
-                >
-                  <div className={`absolute -top-8 left-0 px-2 py-1 rounded text-xs font-bold whitespace-nowrap ${
-                    humanFoundSymbol 
-                      ? "bg-green-500 text-white" 
-                      : "bg-red-500 text-white"
-                  }`}>
-                    {humanFoundSymbol ? "🎯 Ta position" : "🤖 Position IA"}
-                  </div>
-                </div>
+                <>
+                  {aiDetectionResult.bounding_boxes.map((box: any, index: number) => (
+                    <div
+                      key={index}
+                      className={`absolute border-4 rounded-lg ${humanFoundSymbol
+                          ? "border-green-500 bg-green-500/20"
+                          : "border-red-500 bg-red-500/20"
+                        }`}
+                      style={{
+                        left: `${box.x}%`,
+                        top: `${box.y}%`,
+                        width: `${box.width}%`,
+                        height: `${box.height}%`,
+                      }}
+                    >
+                      {index === 0 && (
+                        <div className={`absolute -top-8 left-0 px-2 py-1 rounded text-xs font-bold whitespace-nowrap ${humanFoundSymbol
+                            ? "bg-green-500 text-white"
+                            : "bg-red-500 text-white"
+                          }`}>
+                          {humanFoundSymbol ? "🎯 Symbole trouvé" : "🤖 Symbole commun"}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
               )}
             </div>
           </div>
@@ -348,11 +363,10 @@ export const AIvsHumanDobbleMode = ({
 
           {/* Résultat final */}
           {winner && (
-            <div className={`game-card p-6 text-center space-y-3 ${
-              winner === "human" ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20" :
-              winner === "ai" ? "bg-gradient-to-br from-red-500/20 to-rose-500/20" :
-              "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
-            }`}>
+            <div className={`game-card p-6 text-center space-y-3 ${winner === "human" ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20" :
+                winner === "ai" ? "bg-gradient-to-br from-red-500/20 to-rose-500/20" :
+                  "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
+              }`}>
               <div className="text-6xl">
                 {winner === "human" ? "🏆" : winner === "ai" ? "🤖" : "🤝"}
               </div>
@@ -364,7 +378,7 @@ export const AIvsHumanDobbleMode = ({
                 {winner === "ai" && "L'IA était plus rapide cette fois..."}
                 {winner === "tie" && "Vous étiez très proche de l'IA !"}
               </p>
-              
+
               {/* Détail du symbole trouvé */}
               {humanClickedSymbol && (
                 <div className="text-lg font-bold text-primary mt-2">

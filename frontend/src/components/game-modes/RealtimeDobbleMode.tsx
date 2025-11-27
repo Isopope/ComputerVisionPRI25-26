@@ -93,24 +93,11 @@ export const RealtimeDobbleMode = ({
                             const width = (bbox.width / 100) * overlayCanvas.width;
                             const height = (bbox.height / 100) * overlayCanvas.height;
 
-                            overlayCtx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+                            overlayCtx.strokeStyle = "rgba(0, 255, 0, 0.8)";
                             overlayCtx.lineWidth = 4;
                             overlayCtx.strokeRect(x, y, width, height);
 
-                            const cx = x + width / 2;
-                            const cy = y + height / 2;
-                            overlayCtx.fillStyle = "rgba(255, 0, 0, 0.8)";
-                            overlayCtx.beginPath();
-                            overlayCtx.arc(cx, cy, 12, 0, Math.PI * 2);
-                            overlayCtx.fill();
-
-                            overlayCtx.strokeStyle = "rgba(255, 255, 255, 1)";
-                            overlayCtx.lineWidth = 2;
-                            overlayCtx.beginPath();
-                            overlayCtx.arc(cx, cy, 15, 0, Math.PI * 2);
-                            overlayCtx.stroke();
-
-                            overlayCtx.fillStyle = "rgba(255, 0, 0, 0.8)";
+                            overlayCtx.fillStyle = "rgba(0, 255, 0, 0.8)";
                             overlayCtx.font = "bold 16px Arial";
                             overlayCtx.fillText(`${bbox.label} (${Math.round(bbox.confidence * 100)}%)`, x, y - 10);
                         });

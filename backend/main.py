@@ -96,16 +96,11 @@ def draw_bounding_boxes(image: np.ndarray, duplicate_detections: List[Dict]) -> 
         conf = det['confiance']
         label = det['classe']
         
-        cv2.rectangle(image_copy, (xmin, ymin), (xmax, ymax), (0, 0, 255), 4)
-        
-        cx = (xmin + xmax) // 2
-        cy = (ymin + ymax) // 2
-        cv2.circle(image_copy, (cx, cy), 12, (0, 0, 255), -1)
-        cv2.circle(image_copy, (cx, cy), 15, (255, 255, 255), 2)
+        cv2.rectangle(image_copy, (xmin, ymin), (xmax, ymax), (0, 255, 0), 4)
         
         label_text = f'{label} ({int(conf*100)}%)'
         cv2.putText(image_copy, label_text, (xmin, ymin-15),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
     
     image_rgb = cv2.cvtColor(image_copy, cv2.COLOR_BGR2RGB)
     pil_image = Image.fromarray(image_rgb)
