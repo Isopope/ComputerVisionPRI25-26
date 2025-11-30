@@ -17,7 +17,8 @@ const DinoGame = () => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   
-  const lastGestureRef = useRef<{ type: string; time: number } | null>(null);
+  const lastRawGestureRef = useRef<string>(""); // Dernier geste brut détecté (Open, Close, OK, Pointer)
+  const jumpCooldownRef = useRef<number>(0); // Timestamp du dernier saut
 
   useEffect(() => {
     // Valider le mode - Dino n'a que le mode ai-vs-human
@@ -27,38 +28,38 @@ const DinoGame = () => {
     }
   }, [mode, navigate]);
 
-  const handleGestureDetected = (gestureData: { gesture: string; confidence: number }) => {
+  const handleGestureDetected = (gestureData: { gesture: string; confidence: number; raw_gesture?: string }) => {
     const now = Date.now();
+    const currentRawGesture = gestureData.raw_gesture || gestureData.gesture;
+    const previousRawGesture = lastRawGestureRef.current;
     
-    console.log("📍 Gesture detected in DinoGame:", gestureData);
-    
-    // Débounce sur les gestes identiques (300ms cooldown)
-    if (
-      lastGestureRef.current &&
-      lastGestureRef.current.type === gestureData.gesture &&
-      now - lastGestureRef.current.time < 300
-    ) {
-      console.log("⏱️ Debounced (same gesture within 300ms)");
+    // Ignorer si pas de geste (aucune main détectée)
+    if (!currentRawGesture || currentRawGesture === "neutral" || currentRawGesture === "") {
+      lastRawGestureRef.current = "";
       return;
     }
-
-    // Déclencher les actions du jeu
-    if (gestureData.gesture === "jump" && typeof (window as any).dinoJump === "function") {
-      console.log("✅ Calling dinoJump()");
-      (window as any).dinoJump();
-      lastGestureRef.current = { type: "jump", time: now };
-    } else if (gestureData.gesture === "duck" && typeof (window as any).dinoDuck === "function") {
-      console.log("✅ Calling dinoDuck()");
-      (window as any).dinoDuck();
-      lastGestureRef.current = { type: "duck", time: now };
-    } else {
-      console.log("❌ Functions not available:", {
-        isJump: gestureData.gesture === "jump",
-        hasDinoJump: typeof (window as any).dinoJump === "function",
-        isDuck: gestureData.gesture === "duck",
-        hasDinoDuck: typeof (window as any).dinoDuck === "function",
-      });
+    
+    console.log("📍 Raw gesture:", currentRawGesture, "| Previous:", previousRawGesture);
+    
+    // Détecter le CHANGEMENT de geste (Open→Close, Close→OK, etc.)
+    // Sauter quand le geste change ET qu'il y a un geste valide
+    if (currentRawGesture !== previousRawGesture) {
+      // Cooldown minimum entre deux sauts (évite les doubles sauts accidentels)
+      if (now - jumpCooldownRef.current < 400) {
+        console.log("⏱️ Jump cooldown actif");
+        lastRawGestureRef.current = currentRawGesture;
+        return;
+      }
+      
+      if (typeof (window as any).dinoJump === "function") {
+        console.log("✅ JUMP triggered (geste changé:", previousRawGesture, "→", currentRawGesture + ")");
+        (window as any).dinoJump();
+        jumpCooldownRef.current = now;
+      }
     }
+    
+    // Mettre à jour le geste pour la prochaine détection
+    lastRawGestureRef.current = currentRawGesture;
   };
 
   const handleGameOver = (finalScore: number) => {
@@ -110,8 +111,8 @@ const DinoGame = () => {
           <div className="flex-1">
             <DinoGameCanvas
               onJump={() => console.log("Jump triggered")}
-              onDuck={() => console.log("Duck triggered")}
               onGameOver={handleGameOver}
+              onScoreUpdate={(newScore) => setScore(newScore)}
             />
           </div>
 

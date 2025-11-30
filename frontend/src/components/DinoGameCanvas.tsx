@@ -4,139 +4,111 @@ import ChromeDinoGame from "react-chrome-dino";
 
 interface DinoGameCanvasProps {
   onJump?: () => void;
-  onDuck?: () => void;
   onGameOver?: (score: number) => void;
+  onScoreUpdate?: (score: number) => void;
 }
 
-export const DinoGameCanvas = ({ onJump, onDuck, onGameOver }: DinoGameCanvasProps) => {
+export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate }: DinoGameCanvasProps) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const dinoRef = useRef<any>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const scoreCheckIntervalRef = useRef<number | null>(null);
 
-  // Expose methods to parent for gesture control - ALWAYS register these!
+  // Expose jump method to parent for gesture control
   useEffect(() => {
-    (window as any).dinoJump = () => {
-      console.log("🦕 JUMP called via gesture");
-      
-      // Try multiple methods to trigger jump
-      const dispatchKeyEvent = (target: any) => {
-        const spaceEvent = new KeyboardEvent("keydown", {
-          code: "Space",
-          key: " ",
-          keyCode: 32,
-          bubbles: true,
-          cancelable: true,
-        });
-        target.dispatchEvent(spaceEvent);
-        
-        // Also try keyup
-        const spaceEventUp = new KeyboardEvent("keyup", {
-          code: "Space",
-          key: " ",
-          keyCode: 32,
-          bubbles: true,
-          cancelable: true,
-        });
-        setTimeout(() => target.dispatchEvent(spaceEventUp), 100);
-      };
-      
-      // Dispatch on window
-      dispatchKeyEvent(window);
-      // Dispatch on document
-      dispatchKeyEvent(document);
-      // Dispatch on the game container
+    const dispatchKeyDown = (code: string, key: string, keyCode: number) => {
+      const event = new KeyboardEvent("keydown", {
+        code,
+        key,
+        keyCode,
+        bubbles: true,
+        cancelable: true,
+      });
+      window.dispatchEvent(event);
+      document.dispatchEvent(event);
       if (gameContainerRef.current) {
-        dispatchKeyEvent(gameContainerRef.current);
+        gameContainerRef.current.dispatchEvent(event);
       }
-      
-      onJump?.();
     };
 
-    (window as any).dinoDuck = () => {
-      console.log("🦕 DUCK called via gesture");
-      
-      const dispatchKeyEvent = (target: any) => {
-        const downEvent = new KeyboardEvent("keydown", {
-          code: "ArrowDown",
-          key: "ArrowDown",
-          keyCode: 40,
-          bubbles: true,
-          cancelable: true,
-        });
-        target.dispatchEvent(downEvent);
-        
-        // Also try keyup
-        const downEventUp = new KeyboardEvent("keyup", {
-          code: "ArrowDown",
-          key: "ArrowDown",
-          keyCode: 40,
-          bubbles: true,
-          cancelable: true,
-        });
-        setTimeout(() => target.dispatchEvent(downEventUp), 100);
-      };
-      
-      // Dispatch on window
-      dispatchKeyEvent(window);
-      // Dispatch on document
-      dispatchKeyEvent(document);
-      // Dispatch on the game container
+    const dispatchKeyUp = (code: string, key: string, keyCode: number) => {
+      const event = new KeyboardEvent("keyup", {
+        code,
+        key,
+        keyCode,
+        bubbles: true,
+        cancelable: true,
+      });
+      window.dispatchEvent(event);
+      document.dispatchEvent(event);
       if (gameContainerRef.current) {
-        dispatchKeyEvent(gameContainerRef.current);
+        gameContainerRef.current.dispatchEvent(event);
       }
-      
-      onDuck?.();
+    };
+
+    (window as any).dinoJump = () => {
+      console.log("🦕 JUMP called via gesture");
+      dispatchKeyDown("Space", " ", 32);
+      setTimeout(() => dispatchKeyUp("Space", " ", 32), 100);
+      onJump?.();
     };
 
     return () => {
       delete (window as any).dinoJump;
-      delete (window as any).dinoDuck;
     };
-  }, [onJump, onDuck]);
+  }, [onJump]);
 
-  // Handle keyboard input
+  // Handle keyboard input (space for jump)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space") {
         onJump?.();
-      } else if (e.code === "ArrowDown") {
-        onDuck?.();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onJump, onDuck]);
+  }, [onJump]);
 
-  // Monitor game state and score
+  // Monitor game state and score via Runner global object
   useEffect(() => {
     const checkGameState = () => {
-      if (gameContainerRef.current) {
-        // Chercher l'élément de score du jeu
-        const scoreElement = gameContainerRef.current.querySelector('[style*="position"]');
+      // Accéder à l'objet Runner global du jeu Chrome Dino
+      const runner = (window as any).Runner?.instance_;
+      
+      if (runner) {
+        // Récupérer le score (distanceRan * coefficient)
+        const currentScore = runner.distanceMeter?.getActualDistance(runner.distanceRan) || 0;
         
-        // Chercher s'il y a un écran de game over (texte "GAME OVER")
-        const gameOverText = gameContainerRef.current.innerText || "";
+        if (currentScore !== score) {
+          setScore(currentScore);
+          onScoreUpdate?.(currentScore);
+        }
         
-        if (gameOverText.includes("GAME OVER") || gameOverText.includes("Game Over")) {
-          if (!isGameOver) {
-            setIsGameOver(true);
-            onGameOver?.(score);
-          }
+        // Vérifier si le jeu est crashé (game over)
+        if (runner.crashed && !isGameOver) {
+          setIsGameOver(true);
+          onGameOver?.(currentScore);
+        }
+        
+        // Reset si le jeu a redémarré
+        if (!runner.crashed && isGameOver) {
+          setIsGameOver(false);
+          setScore(0);
         }
       }
     };
 
-    scoreCheckIntervalRef.current = window.setInterval(checkGameState, 500);
+    // Vérifier plus fréquemment (100ms) pour un score en temps réel
+    scoreCheckIntervalRef.current = window.setInterval(checkGameState, 100);
 
     return () => {
       if (scoreCheckIntervalRef.current) {
         clearInterval(scoreCheckIntervalRef.current);
       }
     };
-  }, [isGameOver, score, onGameOver]);
+  }, [isGameOver, score, onGameOver, onScoreUpdate]);
 
   return (
     <Card className="p-6 bg-card">
