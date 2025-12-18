@@ -7,58 +7,64 @@ import { ScorePanel } from "@/components/ScorePanel";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
+import { EducationalTutorial } from "@/components/dino/EducationalTutorial";
 
 const DinoGame = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
-  
+
   const mode = searchParams.get("mode") || "ai-vs-human";
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
-  
-  const lastRawGestureRef = useRef<string>(""); // Dernier geste brut détecté (Open, Close, OK, Pointer)
-  const jumpCooldownRef = useRef<number>(0); // Timestamp du dernier saut
+
+  // Tutorial State
+  const [showTutorial, setShowTutorial] = useState(mode === "explanatory");
+  const [lastGestureData, setLastGestureData] = useState<any>({ gesture: "neutral", confidence: 0, raw_gesture: "neutral" });
+
+  const lastRawGestureRef = useRef<string>("");
+  const jumpCooldownRef = useRef<number>(0);
 
   useEffect(() => {
-    // Valider le mode - Dino n'a que le mode ai-vs-human
-    if (mode !== "ai-vs-human") {
+    // Valider les modes autorisés
+    const validModes = ["ai-vs-human", "explanatory"];
+    if (!validModes.includes(mode)) {
       navigate("/");
       return;
     }
   }, [mode, navigate]);
 
-  const handleGestureDetected = (gestureData: { gesture: string; confidence: number; raw_gesture?: string }) => {
+  const handleGestureDetected = (gestureData: { gesture: string; confidence: number; raw_gesture?: string; landmarks?: any[] }) => {
+    // Mettre à jour les données pour le tutoriel (si actif)
+    if (showTutorial) {
+      setLastGestureData(gestureData);
+      // En mode tutoriel, on ne joue pas au jeu
+      return;
+    }
+
     const now = Date.now();
     const currentRawGesture = gestureData.raw_gesture || gestureData.gesture;
     const previousRawGesture = lastRawGestureRef.current;
-    
+
     // Ignorer si pas de geste (aucune main détectée)
     if (!currentRawGesture || currentRawGesture === "neutral" || currentRawGesture === "") {
       lastRawGestureRef.current = "";
       return;
     }
-    
-    console.log("📍 Raw gesture:", currentRawGesture, "| Previous:", previousRawGesture);
-    
-    // Détecter le CHANGEMENT de geste (Open→Close, Close→OK, etc.)
-    // Sauter quand le geste change ET qu'il y a un geste valide
+
+    // Détecter le CHANGEMENT de geste
     if (currentRawGesture !== previousRawGesture) {
-      // Cooldown minimum entre deux sauts (évite les doubles sauts accidentels)
       if (now - jumpCooldownRef.current < 400) {
-        console.log("⏱️ Jump cooldown actif");
         lastRawGestureRef.current = currentRawGesture;
         return;
       }
-      
+
       if (typeof (window as any).dinoJump === "function") {
-        console.log("✅ JUMP triggered (geste changé:", previousRawGesture, "→", currentRawGesture + ")");
         (window as any).dinoJump();
         jumpCooldownRef.current = now;
       }
     }
-    
-    // Mettre à jour le geste pour la prochaine détection
+
     lastRawGestureRef.current = currentRawGesture;
   };
 
@@ -73,10 +79,25 @@ const DinoGame = () => {
     window.location.reload();
   };
 
+  const onTutorialComplete = () => {
+    setShowTutorial(false);
+    // Optionnel : rediriger vers le mode jeu normal ou commencer le jeu ici
+    navigate("/game?mode=ai-vs-human");
+  };
+
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
+      {/* Tutorial Overlay */}
+      {showTutorial && (
+        <EducationalTutorial
+          isOpen={showTutorial}
+          onComplete={onTutorialComplete}
+          gestureData={lastGestureData}
+        />
+      )}
+
       <div className="relative z-10 w-full max-w-7xl mx-auto space-y-6">
         {/* Navigation */}
         <div className="flex items-center justify-between">
@@ -89,20 +110,30 @@ const DinoGame = () => {
             <Home className="w-4 h-4" />
             {t("home") || "Accueil"}
           </Button>
-          
+
           <h1 className="text-3xl font-bold text-foreground">
             🦕 {t("dinoRun") || "Dino Run"}
           </h1>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReplay}
-            className="gap-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            {t("replay") || "Rejouer"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTutorial(true)}
+              className="gap-2"
+            >
+              Using Mode Explicatif (?)
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReplay}
+              className="gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              {t("replay") || "Rejouer"}
+            </Button>
+          </div>
         </div>
 
         {/* Game Layout */}
@@ -113,6 +144,7 @@ const DinoGame = () => {
               onJump={() => console.log("Jump triggered")}
               onGameOver={handleGameOver}
               onScoreUpdate={(newScore) => setScore(newScore)}
+              paused={showTutorial} // Mettre le jeu en pause si tutoriel
             />
           </div>
 

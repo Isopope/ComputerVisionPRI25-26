@@ -6,9 +6,10 @@ interface DinoGameCanvasProps {
   onJump?: () => void;
   onGameOver?: (score: number) => void;
   onScoreUpdate?: (score: number) => void;
+  paused?: boolean;
 }
 
-export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate }: DinoGameCanvasProps) => {
+export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate, paused = false }: DinoGameCanvasProps) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const dinoRef = useRef<any>(null);
@@ -76,22 +77,22 @@ export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate }: DinoGameCa
     const checkGameState = () => {
       // Accéder à l'objet Runner global du jeu Chrome Dino
       const runner = (window as any).Runner?.instance_;
-      
+
       if (runner) {
         // Récupérer le score (distanceRan * coefficient)
         const currentScore = runner.distanceMeter?.getActualDistance(runner.distanceRan) || 0;
-        
+
         if (currentScore !== score) {
           setScore(currentScore);
           onScoreUpdate?.(currentScore);
         }
-        
+
         // Vérifier si le jeu est crashé (game over)
         if (runner.crashed && !isGameOver) {
           setIsGameOver(true);
           onGameOver?.(currentScore);
         }
-        
+
         // Reset si le jeu a redémarré
         if (!runner.crashed && isGameOver) {
           setIsGameOver(false);
@@ -120,8 +121,8 @@ export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate }: DinoGameCa
             </span>
           </div>
         </div>
-        
-        <div 
+
+        <div
           ref={gameContainerRef}
           className="w-full h-[400px] bg-background rounded-lg border border-border overflow-hidden flex items-center justify-center relative"
         >
