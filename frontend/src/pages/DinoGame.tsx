@@ -8,6 +8,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { EducationalTutorial } from "@/components/dino/EducationalTutorial";
+import { ExplanatoryGestureDetector } from "@/components/ExplanatoryGestureDetector";
 
 const DinoGame = () => {
   const navigate = useNavigate();
@@ -82,7 +83,8 @@ const DinoGame = () => {
   const onTutorialComplete = () => {
     setShowTutorial(false);
     // Optionnel : rediriger vers le mode jeu normal ou commencer le jeu ici
-    navigate("/game?mode=ai-vs-human");
+    // On reste sur le mode actuel ("explanatory") qui affiche les debugs
+    // Le setTutorial(false) va débloquer le jeu
   };
 
   return (
@@ -122,7 +124,7 @@ const DinoGame = () => {
               onClick={() => setShowTutorial(true)}
               className="gap-2"
             >
-              Using Mode Explicatif (?)
+              Mode Explicatif (?)
             </Button>
             <Button
               variant="outline"
@@ -150,7 +152,17 @@ const DinoGame = () => {
 
           {/* Sidebar - Détection de gestes + Score */}
           <div className="w-full lg:w-80 space-y-6">
-            <GestureDetector onGestureDetected={handleGestureDetected} />
+            {mode === "explanatory" ? (
+              <ExplanatoryGestureDetector
+                onGestureDetected={handleGestureDetected}
+              />
+            ) : (
+              <GestureDetector
+                onGestureDetected={handleGestureDetected}
+                showLandmarks={false}
+                showDebugInfo={false}
+              />
+            )}
             <ScorePanel score={score} />
           </div>
         </div>

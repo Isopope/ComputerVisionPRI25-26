@@ -27,7 +27,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
 
     // Détecter le saut (changement de geste) pour l'étape 4
     useEffect(() => {
-        if (step !== 4) return; // Seulement actif à l'étape 4 (index 4 = Action)
+        if (step !== 3) return; // Seulement actif à l'étape 3 (index 3 = Action)
 
         const current = gestureData.raw_gesture;
         if (!current || current === "neutral") return;
@@ -139,7 +139,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     <p className="text-xl text-muted-foreground leading-relaxed">
                         L'IA ne mesure pas juste une distance. Elle compare la <strong>forme globale</strong> de main.
                         <br /><br />
-                        C'est comme un jeu d'enfant : "Est-ce que cette forme rentre dans la boîte CARRÉ ou la boîte ROND ?"
+                        C'est comme un jeu d'enfant : "Est-ce que cette forme rentre dans la boîte Main Ouverte ou Poing Fermé ?"
                     </p>
                     <div className="space-y-4">
                         <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "bg-green-100 border-green-500 dark:bg-green-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
@@ -147,7 +147,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                             <span className="text-4xl">✋</span>
                         </div>
                         <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Close" || gestureData.raw_gesture === "Pointer" ? "bg-orange-100 border-orange-500 dark:bg-orange-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
-                            <span className="font-bold text-lg">CLASSE : FERMÉ</span>
+                            <span className="font-bold text-lg">CLASSE : REPOS (COURIR)</span>
                             <span className="text-4xl">✊</span>
                         </div>
                     </div>
@@ -164,7 +164,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
 
                         <div className={cn("w-32 h-32 rounded-2xl border-4 flex flex-col items-center justify-center transition-all duration-300 bg-card", gestureData.raw_gesture === "Close" ? "border-orange-500 scale-110 shadow-[0_0_30px_rgba(249,115,22,0.3)]" : "border-muted opacity-50")}>
                             <div className="text-5xl mb-2">✊</div>
-                            <div className="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">FERMÉ</div>
+                            <div className="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">REPOS</div>
                         </div>
                     </div>
 
@@ -207,7 +207,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                         Action = <em>État Précédent ≠ État Actuel</em>
                     </p>
                     <div className="p-6 bg-red-100 dark:bg-red-900/20 rounded-xl text-center space-y-2">
-                        <p className="text-lg font-bold text-red-600 dark:text-red-400">Essayez d'alterner rapidement "Ouvert / Fermé" !</p>
+                        <p className="text-lg font-bold text-red-600 dark:text-red-400">Alternez "Main Ouverte" (Saut) et "Poing Fermé" (Repos) !</p>
                         <div className="text-4xl font-black">{jumpCount} SAUTS</div>
                     </div>
                 </div>

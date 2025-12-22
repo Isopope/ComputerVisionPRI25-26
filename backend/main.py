@@ -146,7 +146,7 @@ def classify_gesture(landmark_list: List[float]) -> tuple:
     """
     Classifie le geste basé sur les landmarks
     Mapping:
-    - Poing fermé (Closed_Fist) → "duck"
+    - Poing fermé (Closed_Fist) → "jump" (ou ignore)
     - Poing ouvert (Open_Palm) ou OK → "jump"
     - Autre → "neutral"
     
@@ -180,7 +180,7 @@ def classify_gesture(landmark_list: List[float]) -> tuple:
     
     # Calcul des angles (ouverture de la main)
     # Si tous les doigts sont loin = poing ouvert = JUMP
-    # Si tous les doigts sont près = poing fermé = DUCK
+    # Si tous les doigts sont près = poing fermé
     
     if keypoint_classifier is None:
         return ("neutral", 0.0)
@@ -401,7 +401,7 @@ async def detect_gesture(request: DetectGestureRequest):
     Détecte le geste de la main pour contrôler le Dino avec GestureRecognizer
     
     Mapping gestes:
-    - "Close" → "duck" (poing fermé)
+    - "Close" → "jump" (poing fermé)
     - "Open" ou "OK" → "jump" (main ouverte ou OK)
     - "Pointer" → "neutral"
     - Pas de main → "neutral"
@@ -590,7 +590,7 @@ async def test_opencv():
         "message": "Fenêtre OpenCV lancée. Appuyez sur ESC pour fermer.",
         "instructions": [
             "✋ Main ouverte (Open) → JUMP",
-            "✊ Poing fermé (Close) → DUCK", 
+            "✊ Poing fermé (Close) → JUMP", 
             "👌 Signe OK → JUMP",
             "☝️ Doigt pointé (Pointer) → NEUTRAL"
         ]
