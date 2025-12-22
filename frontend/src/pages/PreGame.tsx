@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Home, Camera, Video, ArrowLeft, Upload, Image } from "lucide-react";
+import { Home, Camera, Video, ArrowLeft } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 
-type SubMode = "capture" | "realtime" | "upload" | null;
+type SubMode = "capture" | "realtime" | null;
 
 const PreGame = () => {
   const navigate = useNavigate();
@@ -19,10 +19,8 @@ const PreGame = () => {
   const [selectedSubMode, setSelectedSubMode] = useState<SubMode>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!gameFromUrl || !modeFromUrl) {
@@ -86,38 +84,12 @@ const PreGame = () => {
     setCapturedImage(null);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      toast({
-        title: "Fichier invalide",
-        description: "Veuillez sélectionner une image (JPG, PNG, etc.)",
-        variant: "destructive",
-      });
-    }
-  };
 
-  const removeUploadedImage = () => {
-    setUploadedImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleLaunch = () => {
     if (selectedSubMode === "capture" && capturedImage) {
       navigate(`/game?game=${gameFromUrl}&mode=${modeFromUrl}&submode=${selectedSubMode}`, {
         state: { capturedImage }
-      });
-    } else if (selectedSubMode === "upload" && uploadedImage) {
-      navigate(`/game?game=${gameFromUrl}&mode=${modeFromUrl}&submode=${selectedSubMode}`, {
-        state: { capturedImage: uploadedImage }
       });
     } else if (selectedSubMode === "realtime") {
       navigate(`/game?game=${gameFromUrl}&mode=${modeFromUrl}&submode=${selectedSubMode}`);
@@ -172,7 +144,7 @@ const PreGame = () => {
           <h2 className="text-xl font-semibold mb-4 text-foreground">
             🧠 Choix du sous-mode
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div
               onClick={() => setSelectedSubMode("capture")}
               className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "capture" ? "ring-4 ring-primary pulse-ring" : ""
@@ -189,21 +161,7 @@ const PreGame = () => {
               </p>
             </div>
 
-            <div
-              onClick={() => setSelectedSubMode("upload")}
-              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "upload" ? "ring-4 ring-primary pulse-ring" : ""
-                }`}
-            >
-              <div className="bg-accent text-accent-foreground p-4 rounded-full">
-                <Upload className="w-12 h-12" />
-              </div>
-              <h3 className="text-lg font-bold text-center">
-                📁 Upload
-              </h3>
-              <p className="text-sm text-muted-foreground text-center">
-                Importe ton image
-              </p>
-            </div>
+
 
             <div
               onClick={() => setSelectedSubMode("realtime")}
@@ -271,63 +229,6 @@ const PreGame = () => {
             )}
             <canvas ref={canvasRef} className="hidden" />
           </div>
-        ) : selectedSubMode === "upload" ? (
-          <div className="game-card p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-accent text-accent-foreground p-3 rounded-full">
-                <Upload className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-semibold">
-                📁 {uploadedImage ? "Image uploadée" : "Upload ton image"}
-              </h3>
-            </div>
-
-            {!uploadedImage ? (
-              <div
-                className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <div className="flex flex-col items-center gap-4">
-                  <div className="bg-muted p-6 rounded-full">
-                    <Image className="w-12 h-12 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold mb-2">
-                      Clique pour sélectionner une image
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      JPG, PNG, WEBP (max 10 MB)
-                    </p>
-                  </div>
-                  <Button variant="accent" className="gap-2">
-                    <Upload className="w-4 h-4" />
-                    Parcourir
-                  </Button>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="relative rounded-lg overflow-hidden">
-                  <img src={uploadedImage} alt="Uploaded" className="w-full h-auto max-h-96 object-contain bg-muted" />
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={removeUploadedImage}
-                  className="w-full gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Changer d'image
-                </Button>
-              </div>
-            )}
-          </div>
         ) : selectedSubMode === "realtime" ? (
           <div className="game-card p-6 space-y-4">
             <div className="flex items-center gap-3">
@@ -357,8 +258,7 @@ const PreGame = () => {
           onClick={handleLaunch}
           disabled={
             !selectedSubMode ||
-            (selectedSubMode === "capture" && !capturedImage) ||
-            (selectedSubMode === "upload" && !uploadedImage)
+            (selectedSubMode === "capture" && !capturedImage)
           }
           className="w-full"
         >
