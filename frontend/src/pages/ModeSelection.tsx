@@ -37,7 +37,7 @@ const ModeSelection = () => {
   };
 
   const handleBack = () => {
-    navigate("/select");
+    navigate("/");
   };
 
   return (

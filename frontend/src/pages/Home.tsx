@@ -24,7 +24,7 @@ const Home = () => {
     <div className="min-h-screen relative flex flex-col items-center justify-center p-6 overflow-hidden">
       <AnimatedBackground />
 
-      <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col gap-8">
+      <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col gap-8">
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground animate-fade-in">
@@ -41,7 +41,7 @@ const Home = () => {
         </div>
 
         {/* Game Selection */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto w-full">
           <GameCard
             title={t("dobble")}
             image={dobbleImage}
