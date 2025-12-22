@@ -27,7 +27,7 @@ export const AIPureMode = ({
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
       {/* Navigation en haut */}
       <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
         <Button
@@ -49,8 +49,8 @@ export const AIPureMode = ({
               {yoloMutation.isPending ? "🔍 Analyse en cours…" : "✅ Analyse terminée !"}
             </h1>
             <p className="text-base text-muted-foreground">
-              {yoloMutation.isPending 
-                ? "L'IA cherche l'élément cible…" 
+              {yoloMutation.isPending
+                ? "L'IA cherche l'élément cible…"
                 : "L'IA a trouvé tous les éléments !"}
             </p>
           </div>
@@ -60,36 +60,36 @@ export const AIPureMode = ({
             <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center relative">
               {/* Image capturée ou uploadée */}
               {capturedImageFromState ? (
-                <img 
-                  src={capturedImageFromState} 
-                  alt="Captured" 
+                <img
+                  src={capturedImageFromState}
+                  alt="Captured"
                   className="w-full h-full object-contain"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-6xl">{gameFromUrl === "charlie" ? "🧍" : "🎯"}</div>
+                  <div className="text-6xl">🎯</div>
                 </div>
               )}
-              
+
               {/* Overlay IA - Bounding boxes de YOLO */}
               {!yoloMutation.isPending && yoloMutation.data && capturedImageFromState && (
-                <BoundingBoxOverlay 
+                <BoundingBoxOverlay
                   image={capturedImageFromState}
                   boundingBoxes={yoloMutation.data.result.bounding_boxes}
                 />
               )}
-              
+
               {/* Heatmap overlay */}
               {yoloMutation.isPending && (
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 animate-pulse" />
               )}
             </div>
-            
+
             {/* Annotations */}
             {!yoloMutation.isPending && yoloMutation.data && (
               <div className="absolute top-4 right-4">
                 <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold">
-                  {gameFromUrl === "charlie" ? "Charlie détecté ✓" : "Symbole en commun détecté ✓"}
+                  Symbole en commun détecté ✓
                 </div>
               </div>
             )}
@@ -131,9 +131,9 @@ export const AIPureMode = ({
                   {yoloMutation.data ? Math.round(yoloMutation.data.result.confidence * 100) : 0}%
                 </span>
               </div>
-              <Progress 
-                value={yoloMutation.data ? yoloMutation.data.result.confidence * 100 : 0} 
-                className="h-3" 
+              <Progress
+                value={yoloMutation.data ? yoloMutation.data.result.confidence * 100 : 0}
+                className="h-3"
               />
             </div>
 
@@ -153,7 +153,7 @@ export const AIPureMode = ({
                   {yoloMutation.data ? yoloMutation.data.result.bounding_boxes.length : 0}
                 </span>
               </div>
-              
+
               {yoloMutation.data && yoloMutation.data.result.bounding_boxes.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center p-2 bg-accent/10 rounded">
@@ -173,8 +173,8 @@ export const AIPureMode = ({
             </div>
 
             {/* Bouton explication */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full gap-2"
               onClick={() => {
                 if (yoloMutation.data) {

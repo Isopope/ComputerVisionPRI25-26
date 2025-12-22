@@ -6,7 +6,6 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
-import charlieImage from "@/assets/charlie.png";
 import dobbleImage from "@/assets/dobble.png";
 import dinoImage from "@/assets/dino.png";
 
@@ -24,7 +23,7 @@ const Home = () => {
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
       <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col gap-8">
         {/* Header */}
         <div className="text-center space-y-3">
@@ -43,14 +42,6 @@ const Home = () => {
 
         {/* Game Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <GameCard
-            title={t("whereIsCharlie")}
-            image={charlieImage}
-            icon={Search}
-            selected={selectedGame === "charlie"}
-            onClick={() => setSelectedGame("charlie")}
-            animationClass="floating-animation"
-          />
           <GameCard
             title={t("dobble")}
             image={dobbleImage}

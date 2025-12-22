@@ -3,10 +3,10 @@
  */
 
 import { getBackendUrl, API_ENDPOINTS } from './config';
-import type { 
-  AnalyzeCharlieRequest, 
-  AnalyzeCharlieResponse, 
-  HealthCheckResponse 
+import type {
+  AnalyzeCharlieRequest,
+  AnalyzeCharlieResponse,
+  HealthCheckResponse
 } from '@/types/api';
 
 class ApiService {
@@ -34,25 +34,6 @@ class ApiService {
     return response.json();
   }
 
-  /**
-   * Analyser une image pour détecter Charlie (ou autres objets)
-   */
-  async analyzeCharlie(request: AnalyzeCharlieRequest): Promise<AnalyzeCharlieResponse> {
-    const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.ANALYZE_CHARLIE}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      throw new Error(errorData.detail || `Analyze failed: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
 
   /**
    * Analyser une image pour détecter les symboles Dobble
