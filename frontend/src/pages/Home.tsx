@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Search, Gamepad2 } from "lucide-react";
 import { GameCard } from "@/components/GameCard";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -11,13 +12,22 @@ import dinoImage from "@/assets/dino.png";
 
 const Home = () => {
   const navigate = useNavigate();
+  const navigateWithLang = useNavigateWithLang();
+  const { lang: urlLang } = useParams<{ lang: string }>();
   const { lang, setLang, t } = useLanguage();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
 
   const handleStart = () => {
     if (selectedGame) {
-      navigate(`/mode?game=${selectedGame}`);
+      navigateWithLang(`/mode?game=${selectedGame}`);
     }
+  };
+
+  const handleLanguageChange = (newLang: "fr" | "en") => {
+    setLang(newLang);
+    // Update URL to reflect new language
+    const currentLang = urlLang || "fr";
+    navigate(`/${newLang}`, { replace: true });
   };
 
   return (
@@ -37,7 +47,7 @@ const Home = () => {
 
         {/* Language Selector */}
         <div className="flex justify-end">
-          <LanguageSelector currentLang={lang} onLanguageChange={setLang} />
+          <LanguageSelector currentLang={lang} onLanguageChange={handleLanguageChange} />
         </div>
 
         {/* Game Selection */}

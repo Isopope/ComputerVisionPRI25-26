@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, RotateCcw, ArrowRight, HelpCircle } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ const generateCard = (commonSymbol: string): string[] => {
 };
 
 const ActiveGame = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLang();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const { t } = useLanguage();
@@ -183,13 +184,13 @@ const ActiveGame = () => {
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-6">
           <div className="text-center space-y-4 max-w-md">
-            <h1 className="text-2xl font-bold text-destructive">Mode non disponible</h1>
+            <h1 className="text-2xl font-bold text-destructive">{t("modeNotAvailable")}</h1>
             <p className="text-muted-foreground">
-              Le mode "IA vs Humain" pour Dobble nécessite l'utilisation de la caméra en temps réel.
-              Le mode "{subModeFromUrl}" n'est pas supporté.
+              {t("modeRequiresCamera")}
+              {t("modeNotSupported").replace("{mode}", subModeFromUrl || "")}
             </p>
             <Button onClick={() => navigate("/")} variant="default">
-              Retour à l'accueil
+              {t("backToHome")}
             </Button>
           </div>
         </div>
@@ -217,17 +218,17 @@ const ActiveGame = () => {
         <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-4">
           <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
             <Home className="w-4 h-4" />
-            Accueil
+            {t("home")}
           </Button>
         </div>
 
         {/* Header */}
         <div className="relative z-10 text-center space-y-2 mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            ⚔️ IA vs Humain – Dobble Duel !
+            {t("dobbleDuelBoxTitle")}
           </h1>
           <p className="text-base text-muted-foreground">
-            Trouve le symbole commun plus vite que l'IA !
+            {t("dobbleDuelObjective")}
           </p>
         </div>
 
@@ -237,7 +238,7 @@ const ActiveGame = () => {
             {/* Zone IA (haut) */}
             <div className="game-card p-6 flex-1">
               <h2 className="text-xl font-bold mb-4 text-primary flex items-center gap-2">
-                🤖 Zone IA
+                {t("aiZone")}
                 {aiTime && <span className="text-sm font-normal">({aiTime}s)</span>}
               </h2>
               <div className="grid grid-cols-4 gap-3 mb-4">
@@ -272,7 +273,7 @@ const ActiveGame = () => {
             {/* Zone Humain (bas) */}
             <div className={`game-card p-6 flex-1 ${clickedWrongSymbol ? 'animate-shake' : ''}`}>
               <h2 className="text-xl font-bold mb-4 text-secondary flex items-center gap-2">
-                👤 Ta Zone
+                {t("yourZone")}
                 {humanTime && <span className="text-sm font-normal">({humanTime}s)</span>}
               </h2>
               <div className="grid grid-cols-4 gap-3 mb-4">
@@ -303,7 +304,7 @@ const ActiveGame = () => {
               </div>
               {clickedWrongSymbol && (
                 <div className="mt-4 text-center text-sm font-semibold text-destructive">
-                  ❌ Mauvais symbole ! Réessaie
+                  {t("wrongSymbol")}
                 </div>
               )}
             </div>
@@ -312,14 +313,14 @@ const ActiveGame = () => {
             <div className="flex flex-wrap gap-3 justify-center">
               <Button variant="secondary" onClick={handleReplay} className="gap-2">
                 <RotateCcw className="w-4 h-4" />
-                Rejouer
+                {t("replay")}
               </Button>
               <Button
                 variant="accent"
                 onClick={() => navigate(`/mode?game=${gameFromUrl}`)}
                 className="gap-2"
               >
-                Changer de mode
+                {t("changeMode")}
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
@@ -329,7 +330,7 @@ const ActiveGame = () => {
           <div className="w-full lg:w-80 space-y-4">
             <div className="game-card p-6 space-y-4">
               <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
-                🏆 Résultats
+                {t("results")}
               </h3>
 
               {/* Comparatif */}
@@ -341,23 +342,23 @@ const ActiveGame = () => {
                         {winner === "human" ? "🎉" : winner === "ai" ? "🤖" : "🤝"}
                       </div>
                       <p className="font-bold text-lg">
-                        {winner === "human" ? "Tu as gagné !" : winner === "ai" ? "L'IA a gagné !" : "Égalité !"}
+                        {winner === "human" ? t("youWon") : winner === "ai" ? t("aiWon") : t("draw")}
                       </p>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                      <span>⏱️ Temps IA</span>
+                      <span>{t("aiTime")}</span>
                       <span className="font-bold">{aiTime}s</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                      <span>⏱️ Ton temps</span>
+                      <span>{t("yourTime")}</span>
                       <span className="font-bold">{humanTime || "—"}s</span>
                     </div>
                     {humanTime && aiTime && (
                       <div className="flex justify-between items-center p-3 bg-accent/20 rounded-lg">
-                        <span>📊 Différence</span>
+                        <span>{t("difference")}</span>
                         <span className="font-bold">{Math.abs(humanTime - aiTime).toFixed(2)}s</span>
                       </div>
                     )}
@@ -368,7 +369,7 @@ const ActiveGame = () => {
               {gameStatus === "playing" && (
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">
-                    {aiTime ? "L'IA a terminé ! À toi de jouer !" : "Partie en cours..."}
+                    {aiTime ? t("aiFinished") : t("gameInProgress")}
                   </p>
                 </div>
               )}
@@ -379,7 +380,7 @@ const ActiveGame = () => {
               <div className="game-card p-4 bg-gradient-to-br from-primary/10 to-secondary/10">
                 <div className="text-center space-y-2">
                   <div className="text-4xl">{commonSymbol}</div>
-                  <p className="text-sm font-semibold">Symbole commun</p>
+                  <p className="text-sm font-semibold">{t("commonSymbol")}</p>
                 </div>
               </div>
             )}
@@ -468,7 +469,7 @@ const ActiveGame = () => {
             {!yoloMutation.isPending && yoloMutation.data && (
               <div className="absolute top-4 right-4">
                 <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold">
-                  {gameFromUrl === "charlie" ? "Charlie détecté ✓" : "Symbole en commun détecté ✓"}
+                  {gameFromUrl === "charlie" ? t("charlieDetected") : t("commonSymbolDetected")}
                 </div>
               </div>
             )}
@@ -577,7 +578,7 @@ const ActiveGame = () => {
             <div className="text-center space-y-2">
               <div className="text-4xl">🎉</div>
               <p className="text-sm font-semibold">
-                {yoloMutation.isPending ? "Analyse en cours..." : "Mission accomplie !"}
+                {yoloMutation.isPending ? t("analyzing") : t("missionAccomplished")}
               </p>
             </div>
           </div>

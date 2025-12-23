@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,10 @@ import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const ExplanationSteps = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLang();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
-  
+
   const gameFromUrl = searchParams.get("game");
   const modeFromUrl = searchParams.get("mode");
   const [currentStep, setCurrentStep] = useState(1);
@@ -74,11 +75,11 @@ const ExplanationSteps = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-muted rounded-lg p-4 flex flex-col items-center gap-2">
               <div className="text-4xl">📷</div>
-              <p className="text-xs text-muted-foreground text-center">Image originale</p>
+              <p className="text-xs text-muted-foreground text-center">{t("originalImage")}</p>
             </div>
             <div className="bg-primary/10 rounded-lg p-4 flex flex-col items-center gap-2">
               <div className="text-4xl">🖼️</div>
-              <p className="text-xs text-muted-foreground text-center">Image normalisée</p>
+              <p className="text-xs text-muted-foreground text-center">{t("normalizedImage")}</p>
             </div>
           </div>
         );
@@ -88,7 +89,7 @@ const ExplanationSteps = () => {
             <div className="h-8 bg-gradient-to-r from-primary/30 to-primary/60 rounded animate-pulse" />
             <div className="h-8 bg-gradient-to-r from-secondary/30 to-secondary/60 rounded animate-pulse delay-100" />
             <div className="h-8 bg-gradient-to-r from-accent/30 to-accent/60 rounded animate-pulse delay-200" />
-            <p className="text-xs text-center text-muted-foreground pt-2">Couches neuronales actives</p>
+            <p className="text-xs text-center text-muted-foreground pt-2">{t("neuralLayersActive")}</p>
           </div>
         );
       case "detection":
@@ -97,7 +98,7 @@ const ExplanationSteps = () => {
             <div className="text-6xl">{gameFromUrl === "charlie" ? "🧍" : "🎯"}</div>
             <div className="absolute top-1/4 left-1/4 w-32 h-32 border-4 border-primary rounded-lg animate-pulse" />
             <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-bold">
-              Détecté ✓
+              {t("detected")} ✓
             </div>
           </div>
         );
@@ -106,21 +107,21 @@ const ExplanationSteps = () => {
           <div className="space-y-3">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Confiance détection</span>
+                <span>{t("detectionConfidence")}</span>
                 <span className="font-bold text-primary">98%</span>
               </div>
               <Progress value={98} className="h-2" />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Précision localisation</span>
+                <span>{t("localizationPrecision")}</span>
                 <span className="font-bold text-secondary">95%</span>
               </div>
               <Progress value={95} className="h-2" />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Seuil minimum</span>
+                <span>{t("minimumThreshold")}</span>
                 <span className="font-bold text-muted-foreground">70%</span>
               </div>
               <Progress value={70} className="h-2" />
@@ -136,9 +137,9 @@ const ExplanationSteps = () => {
               <div>🎯</div>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <span className="line-through text-muted-foreground">Doublons</span>
+              <span className="line-through text-muted-foreground">{t("duplicates")}</span>
               <ArrowRight className="w-4 h-4" />
-              <span className="font-bold text-primary">Résultat final</span>
+              <span className="font-bold text-primary">{t("finalResult")}</span>
             </div>
           </div>
         );
@@ -150,7 +151,7 @@ const ExplanationSteps = () => {
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
       {/* Navigation */}
       <div className="relative z-10 w-full max-w-4xl mx-auto flex gap-3 mb-6">
         <Button
@@ -159,7 +160,7 @@ const ExplanationSteps = () => {
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour
+          {t("back")}
         </Button>
         <Button
           variant="ghost"
@@ -250,13 +251,12 @@ const ExplanationSteps = () => {
           {Array.from({ length: totalSteps }).map((_, index) => (
             <div
               key={index}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index + 1 === currentStep
-                  ? "bg-primary scale-125"
-                  : index + 1 < currentStep
+              className={`w-2 h-2 rounded-full transition-colors ${index + 1 === currentStep
+                ? "bg-primary scale-125"
+                : index + 1 < currentStep
                   ? "bg-primary/50"
                   : "bg-muted"
-              }`}
+                }`}
             />
           ))}
         </div>

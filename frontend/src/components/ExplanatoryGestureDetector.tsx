@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useCamera } from "@/hooks/useCamera";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const HAND_CONNECTIONS = [
 const WS_URL = "ws://localhost:8000/ws/gesture";
 
 export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: ExplanatoryGestureDetectorProps) => {
+    const { t } = useLanguage();
     const { videoRef, isReady, error, startCamera, stopCamera } = useCamera();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -61,7 +63,17 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
     }, []);
 
     // Fonction pour dessiner les landmarks ET le texte du geste
-    const drawLandmarks = (ctx: CanvasRenderingContext2D, landmarks: Landmark[], width: number, height: number, gesture: string, action: string) => {
+    const drawLandmarks = (
+        ctx: CanvasRenderingContext2D,
+        landmarks: Landmark[],
+        width: number,
+        height: number,
+        gesture: string,
+        action: string,
+        gestureLabel: string,
+        actionLabel: string,
+        noHandLabel: string
+    ) => {
         ctx.clearRect(0, 0, width, height);
 
         if (landmarks && landmarks.length > 0) {
@@ -122,23 +134,23 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
             ctx.font = "bold 28px Arial";
             ctx.strokeStyle = "rgb(0, 0, 0)";
             ctx.lineWidth = 4;
-            ctx.strokeText(`Geste: ${gesture}`, 15, 40);
+            ctx.strokeText(`${gestureLabel}: ${gesture}`, 15, 40);
             ctx.fillStyle = "rgb(0, 255, 0)";
-            ctx.fillText(`Geste: ${gesture}`, 15, 40);
+            ctx.fillText(`${gestureLabel}: ${gesture}`, 15, 40);
 
             ctx.font = "bold 24px Arial";
             ctx.strokeStyle = "rgb(0, 0, 0)";
             ctx.lineWidth = 3;
-            ctx.strokeText(`Action: ${action}`, 15, 75);
+            ctx.strokeText(`${actionLabel}: ${action}`, 15, 75);
             ctx.fillStyle = "rgb(255, 255, 0)";
-            ctx.fillText(`Action: ${action}`, 15, 75);
+            ctx.fillText(`${actionLabel}: ${action}`, 15, 75);
         } else {
             ctx.font = "bold 24px Arial";
             ctx.strokeStyle = "rgb(0, 0, 0)";
             ctx.lineWidth = 3;
-            ctx.strokeText("Aucune main détectée", 15, 40);
+            ctx.strokeText(noHandLabel, 15, 40);
             ctx.fillStyle = "rgb(255, 100, 100)";
-            ctx.fillText("Aucune main détectée", 15, 40);
+            ctx.fillText(noHandLabel, 15, 40);
         }
     };
 
@@ -210,7 +222,10 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
             width,
             height,
             rawGest,
-            action
+            action,
+            t("gesture"),
+            t("action"),
+            t("noHandDetected")
         );
     }, [onGestureDetected, videoRef]);
 
@@ -307,7 +322,7 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
             <div className="space-y-4">
                 <div className="flex items-center gap-2">
                     <Hand className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-lg font-semibold text-blue-500">Mode Explicatif - Debug</h3>
+                    <h3 className="text-lg font-semibold text-blue-500">{t("explanatoryModeDebug")}</h3>
                 </div>
 
                 {error && (
@@ -325,7 +340,7 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
 
                     {isAnalyzing && (
                         <div className="absolute top-4 left-4 flex gap-2">
-                            <div className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-medium">Mode Explicatif</div>
+                            <div className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-medium">{t("explanatoryMode")}</div>
                             <div className="bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium">{realFps} FPS</div>
                         </div>
                     )}

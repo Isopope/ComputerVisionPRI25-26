@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Camera, Brain, Activity, Play, Eye, CheckCircle2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface GestureData {
     gesture: string;
@@ -19,6 +20,7 @@ interface EducationalTutorialProps {
 }
 
 export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: EducationalTutorialProps) => {
+    const { t } = useLanguage();
     const [step, setStep] = useState(0); // Restore step state
     // State pour l'étape 4 (Action)
     const [prevActionGesture, setPrevActionGesture] = useState<string>("");
@@ -47,20 +49,17 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
 
     const steps = [
         {
-            title: "La Vision par Ordinateur",
+            title: t("computerVisionTitle"),
             icon: <Eye className="w-12 h-12 text-blue-500" />,
             explanation: (
                 <div className="space-y-6">
-                    <h2 className="text-3xl font-bold">Qu'est-ce que c'est ?</h2>
+                    <h2 className="text-3xl font-bold">{t("whatIsComputerVision")}</h2>
                     <p className="text-xl text-muted-foreground leading-relaxed">
-                        La <strong>vision par ordinateur</strong> est la capacité d'une machine à "voir".
-                        <br /><br />
-                        Contrairement à nous, elle ne voit pas une "image", mais une grille de chiffres (pixels).
-                        Son but est de trouver du sens dans ces chiffres.
+                        {t("computerVisionExplanation")}
                     </p>
                     <div className="p-4 bg-muted rounded-xl border-l-4 border-blue-500">
-                        <p className="font-medium">💡 Analogie :</p>
-                        <p className="text-sm mt-1">C'est comme lire une partition de musique : vous voyez des symboles, mais votre cerveau entend la mélodie.</p>
+                        <p className="font-medium">{t("analogy")}</p>
+                        <p className="text-sm mt-1">{t("analogyText")}</p>
                     </div>
                 </div>
             ),
@@ -85,19 +84,17 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
             )
         },
         {
-            title: "Étape 1 : Le Squelette",
+            title: t("step1Skeleton"),
             icon: <Brain className="w-12 h-12 text-purple-500" />,
             explanation: (
                 <div className="space-y-6">
-                    <h2 className="text-3xl font-bold">Détection de la Main</h2>
+                    <h2 className="text-3xl font-bold">{t("handDetection")}</h2>
                     <p className="text-xl text-muted-foreground leading-relaxed">
-                        Nous utilisons une IA appelée <strong>MediaPipe</strong>.
-                        <br /><br />
-                        Elle ne regarde pas la couleur de votre peau ou la forme de vos bagues. Elle cherche <strong>21 points précis</strong> (les phalanges, le poignet, le bout des doigts).
+                        {t("mediaPipeExplanation")}
                     </p>
                     <div className="flex items-center gap-3 text-purple-600 font-bold bg-purple-100 dark:bg-purple-900/20 p-4 rounded-lg">
                         <Brain className="w-6 h-6" />
-                        <span>Essayez de bouger votre main !</span>
+                        <span>{t("tryMovingHand")}</span>
                     </div>
                 </div>
             ),
@@ -118,36 +115,34 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                                 ))}
                             </svg>
                             <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4" /> Détecté
+                                <CheckCircle2 className="w-4 h-4" /> {t("detectedWithIcon")}
                             </div>
                         </div>
                     ) : (
                         <div className="text-center space-y-4">
                             <div className="text-6xl animate-bounce">👋</div>
-                            <p className="text-xl font-medium text-muted-foreground">Levez votre main devant la caméra...</p>
+                            <p className="text-xl font-medium text-muted-foreground">{t("raiseHand")}</p>
                         </div>
                     )}
                 </div>
             )
         },
         {
-            title: "Étape 2 : La Classification",
+            title: t("step2Classification"),
             icon: <Brain className="w-12 h-12 text-orange-500" />,
             explanation: (
                 <div className="space-y-6">
-                    <h2 className="text-3xl font-bold">Reconnaissance de Forme</h2>
+                    <h2 className="text-3xl font-bold">{t("shapeRecognition")}</h2>
                     <p className="text-xl text-muted-foreground leading-relaxed">
-                        L'IA ne mesure pas juste une distance. Elle compare la <strong>forme globale</strong> de main.
-                        <br /><br />
-                        C'est comme un jeu d'enfant : "Est-ce que cette forme rentre dans la boîte Main Ouverte ou Poing Fermé ?"
+                        {t("shapeComparison")}
                     </p>
                     <div className="space-y-4">
                         <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "bg-green-100 border-green-500 dark:bg-green-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
-                            <span className="font-bold text-lg">CLASSE : OUVERT</span>
+                            <span className="font-bold text-lg">{t("classOpen")}</span>
                             <span className="text-4xl">✋</span>
                         </div>
                         <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Close" || gestureData.raw_gesture === "Pointer" ? "bg-orange-100 border-orange-500 dark:bg-orange-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
-                            <span className="font-bold text-lg">CLASSE : REPOS (COURIR)</span>
+                            <span className="font-bold text-lg">{t("classRest")}</span>
                             <span className="text-4xl">✊</span>
                         </div>
                     </div>
@@ -159,12 +154,12 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     <div className="flex w-full justify-between px-8">
                         <div className={cn("w-32 h-32 rounded-2xl border-4 flex flex-col items-center justify-center transition-all duration-300 bg-card", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "border-green-500 scale-110 shadow-[0_0_30px_rgba(34,197,94,0.3)]" : "border-muted opacity-50")}>
                             <div className="text-5xl mb-2">✋</div>
-                            <div className="text-xs font-bold bg-green-500 text-white px-2 py-1 rounded">OUVERT</div>
+                            <div className="text-xs font-bold bg-green-500 text-white px-2 py-1 rounded">{t("open")}</div>
                         </div>
 
                         <div className={cn("w-32 h-32 rounded-2xl border-4 flex flex-col items-center justify-center transition-all duration-300 bg-card", gestureData.raw_gesture === "Close" ? "border-orange-500 scale-110 shadow-[0_0_30px_rgba(249,115,22,0.3)]" : "border-muted opacity-50")}>
                             <div className="text-5xl mb-2">✊</div>
-                            <div className="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">REPOS</div>
+                            <div className="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">{t("rest")}</div>
                         </div>
                     </div>
 
@@ -184,31 +179,29 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                             </svg>
 
                             <div className="absolute -bottom-12 bg-background px-4 py-2 rounded-full border shadow font-mono text-sm">
-                                INPUT: {gestureData.raw_gesture || "?"}
+                                {t("input")}: {gestureData.raw_gesture || "?"}
                             </div>
                         </div>
                     ) : (
                         <div className="text-center animate-pulse text-muted-foreground w-64 h-64 flex items-center justify-center border-4 border-dashed rounded-full">
-                            En attente...
+                            {t("waitingForHand")}
                         </div>
                     )}
                 </div>
             )
         },
         {
-            title: "Étape 3 : L'Action",
+            title: t("step3Action"),
             icon: <Play className="w-12 h-12 text-red-500" />,
             explanation: (
                 <div className="space-y-6">
-                    <h2 className="text-3xl font-bold">Le Déclencheur</h2>
+                    <h2 className="text-3xl font-bold">{t("trigger")}</h2>
                     <p className="text-xl text-muted-foreground leading-relaxed">
-                        Le jeu ne regarde pas juste la forme, mais le <strong>changement</strong> (Front Montant).
-                        <br />
-                        Action = <em>État Précédent ≠ État Actuel</em>
+                        {t("changeDetection")}
                     </p>
                     <div className="p-6 bg-red-100 dark:bg-red-900/20 rounded-xl text-center space-y-2">
-                        <p className="text-lg font-bold text-red-600 dark:text-red-400">Alternez "Main Ouverte" (Saut) et "Poing Fermé" (Repos) !</p>
-                        <div className="text-4xl font-black">{jumpCount} SAUTS</div>
+                        <p className="text-lg font-bold text-red-600 dark:text-red-400">{t("actionInstruction")}</p>
+                        <div className="text-4xl font-black">{jumpCount} {t("jumps")}</div>
                     </div>
                 </div>
             ),
@@ -217,14 +210,14 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     {/* Transition Logic Visualization */}
                     <div className="flex items-center gap-4 w-full justify-between">
                         <div className="bg-card border p-4 rounded-xl flex-1 text-center opacity-70">
-                            <div className="text-xs uppercase font-bold text-muted-foreground">AVANT</div>
+                            <div className="text-xs uppercase font-bold text-muted-foreground">{t("before")}</div>
                             <div className="text-2xl font-bold">{prevActionGesture || "..."}</div>
                         </div>
 
                         <ArrowRight className={cn("w-8 h-8 transition-all", jumpTrigger ? "text-red-500 scale-150" : "text-muted-foreground")} />
 
                         <div className="bg-card border p-4 rounded-xl flex-1 text-center">
-                            <div className="text-xs uppercase font-bold text-muted-foreground">MAINTENANT</div>
+                            <div className="text-xs uppercase font-bold text-muted-foreground">{t("now")}</div>
                             <div className="text-2xl font-bold">{gestureData.raw_gesture || "..."}</div>
                         </div>
                     </div>
@@ -237,12 +230,12 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                             {jumpTrigger ? (
                                 <>
                                     <span className="text-6xl">🦖</span>
-                                    <span className="text-4xl font-black">JUMP!!!</span>
+                                    <span className="text-4xl font-black">{t("jump")}</span>
                                 </>
                             ) : (
                                 <>
                                     <span className="text-4xl grayscale opacity-50">🦖</span>
-                                    <span className="text-sm font-bold mt-2">EN ATTENTE D'ACTION...</span>
+                                    <span className="text-sm font-bold mt-2">{t("waitingAction")}</span>
                                 </>
                             )}
                         </div>
@@ -251,15 +244,13 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
             )
         },
         {
-            title: "Bonus : Confiance de l'IA",
+            title: t("bonusConfidence"),
             icon: <Activity className="w-12 h-12 text-teal-500" />,
             explanation: (
                 <div className="space-y-6">
-                    <h2 className="text-3xl font-bold">Score de Confiance</h2>
+                    <h2 className="text-3xl font-bold">{t("confidenceScoreTitle")}</h2>
                     <p className="text-xl text-muted-foreground leading-relaxed">
-                        L'IA doute parfois. Elle calcule un pourcentage de certitude.
-                        <br />
-                        Si la confiance est trop basse (ex: {`<`} 60%), on ignore le geste pour éviter les bugs.
+                        {t("confidenceExplanation")}
                     </p>
                 </div>
             ),
@@ -276,7 +267,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <span className="text-5xl font-mono font-bold">{(gestureData.confidence * 100).toFixed(0)}%</span>
-                            <span className="text-sm text-muted-foreground">CONFIANCE</span>
+                            <span className="text-sm text-muted-foreground">{t("confidenceLabel")}</span>
                         </div>
                     </div>
                 </div>
@@ -306,7 +297,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
             <div className="w-full md:w-2/3 h-1/2 md:h-full bg-muted/30 p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-border relative overflow-hidden">
                 <div className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground/50 font-mono text-sm">
                     <Activity className="w-4 h-4" />
-                    <span>VISUALIZATION_MODE: ACTIVE</span>
+                    <span>{t("visualizationMode")}</span>
                 </div>
                 {currentContent.visual}
             </div>
@@ -316,7 +307,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                 <div>
                     <div className="flex items-center gap-3 mb-8">
                         <span className="text-xs font-bold tracking-widest text-muted-foreground uppercase bg-muted px-2 py-1 rounded">
-                            Étape {step + 1}/{steps.length}
+                            {t("step")} {step + 1}/{steps.length}
                         </span>
                     </div>
 
@@ -334,7 +325,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                         disabled={step === 0}
                         className="text-muted-foreground hover:text-foreground"
                     >
-                        <ArrowLeft className="w-5 h-5 mr-2" /> Précédent
+                        <ArrowLeft className="w-5 h-5 mr-2" /> {t("previous")}
                     </Button>
 
                     <Button
@@ -342,7 +333,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                         size="lg"
                         className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
                     >
-                        {step === steps.length - 1 ? "COMMENCER LE JEU" : "SUIVANT"}
+                        {step === steps.length - 1 ? t("startDinoGame") : t("next")}
                         {step !== steps.length - 1 && <ArrowRight className="w-5 h-5 ml-2" />}
                     </Button>
                 </div>

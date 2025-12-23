@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, useSearchParams } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { LanguageLayout } from "@/components/LanguageLayout";
+import { LanguageRedirect } from "@/components/LanguageRedirect";
 import Home from "./pages/Home";
 import ModeSelection from "./pages/ModeSelection";
 import PreGame from "./pages/PreGame";
@@ -15,7 +17,7 @@ import NotFound from "./pages/NotFound";
 const GameRoute = () => {
   const [searchParams] = useSearchParams();
   const game = searchParams.get("game");
-  
+
   return game === "dino" ? <DinoGame /> : <ActiveGame />;
 };
 
@@ -29,12 +31,19 @@ const App = () => (
         <Sonner />
         <HashRouter>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/mode" element={<ModeSelection />} />
-            <Route path="/pregame" element={<PreGame />} />
-            <Route path="/game" element={<GameRoute />} />
-            <Route path="/explanation" element={<ExplanationSteps />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Root redirects to default language */}
+            <Route path="/" element={<LanguageRedirect />} />
+
+            {/* All routes nested under /:lang */}
+            <Route path="/:lang" element={<LanguageLayout />}>
+              <Route index element={<Home />} />
+              <Route path="mode" element={<ModeSelection />} />
+              <Route path="pregame" element={<PreGame />} />
+              <Route path="game" element={<GameRoute />} />
+              <Route path="explanation" element={<ExplanationSteps />} />
+            </Route>
+
+            {/* Catch-all for 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </HashRouter>

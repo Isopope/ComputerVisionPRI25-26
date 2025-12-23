@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, RotateCcw } from "lucide-react";
 import { DinoGameCanvas } from "@/components/DinoGameCanvas";
 import { GestureDetector } from "@/components/GestureDetector";
@@ -11,7 +12,7 @@ import { EducationalTutorial } from "@/components/dino/EducationalTutorial";
 import { ExplanatoryGestureDetector } from "@/components/ExplanatoryGestureDetector";
 
 const DinoGame = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLang();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
 
@@ -124,7 +125,7 @@ const DinoGame = () => {
               onClick={() => setShowTutorial(true)}
               className="gap-2"
             >
-              Mode Explicatif (?)
+              {t("explanatoryMode")} (?)
             </Button>
             <Button
               variant="outline"

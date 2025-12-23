@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, Camera, Video, ArrowLeft } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 type SubMode = "capture" | "realtime" | null;
 
 const PreGame = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLang();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -112,7 +113,7 @@ const PreGame = () => {
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour
+          {t("back")}
         </Button>
         <Button
           variant="ghost"
@@ -128,14 +129,14 @@ const PreGame = () => {
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            {modeFromUrl === "ai-pure" && "🤖 Mode IA Pure – Préparation"}
-            {modeFromUrl === "ai-vs-human" && "⚔️ IA vs Humain – Préparation"}
-            {modeFromUrl === "explanatory" && "📚 Mode Explicatif – Préparation"}
+            {modeFromUrl === "ai-pure" && t("aiPurePreparation")}
+            {modeFromUrl === "ai-vs-human" && t("aiVsHumanPreparation")}
+            {modeFromUrl === "explanatory" && t("explanatoryModePreparation")}
           </h1>
           <p className="text-base text-muted-foreground">
-            {modeFromUrl === "ai-pure" && "Choisis comment l'IA va analyser ton image"}
-            {modeFromUrl === "ai-vs-human" && "Prépare le terrain pour défier l'IA"}
-            {modeFromUrl === "explanatory" && "Charge une image pour comprendre le processus"}
+            {modeFromUrl === "ai-pure" && t("aiPurePreparationDesc")}
+            {modeFromUrl === "ai-vs-human" && t("aiVsHumanPreparationDesc")}
+            {modeFromUrl === "explanatory" && t("explanatoryPreparationDesc")}
           </p>
         </div>
 
@@ -157,7 +158,7 @@ const PreGame = () => {
                 📸 Capture
               </h3>
               <p className="text-sm text-muted-foreground text-center">
-                Prends une photo
+                {t("takePhoto")}
               </p>
             </div>
 
@@ -172,7 +173,7 @@ const PreGame = () => {
                 <Video className="w-12 h-12" />
               </div>
               <h3 className="text-lg font-bold text-center">
-                🔄 Temps réel
+                🔄 {t("realTime")}
               </h3>
               <p className="text-sm text-muted-foreground text-center">
                 Analyse en continu
@@ -189,7 +190,7 @@ const PreGame = () => {
                 <Camera className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-semibold">
-                📷 {capturedImage ? "Image capturée" : "Aperçu caméra"}
+                📷 {capturedImage ? t("capturedImage") : t("cameraPreview")}
               </h3>
             </div>
 
@@ -209,7 +210,7 @@ const PreGame = () => {
                   className="absolute bottom-4 left-1/2 -translate-x-1/2 gap-2"
                 >
                   <Camera className="w-5 h-5" />
-                  📸 Capturer
+                  {t("capture")}
                 </Button>
               </div>
             ) : (
@@ -242,7 +243,7 @@ const PreGame = () => {
             <div className="flex flex-col items-center gap-4 p-4 bg-muted rounded-lg">
               <div className="text-6xl">📱</div>
               <p className="text-center text-sm text-muted-foreground">
-                L'IA analysera en temps réel ce qu'elle voit
+                {t("realTimeDesc")}
               </p>
               <div className="flex gap-2 text-3xl">
                 🎯 ➡️ 🔄 ➡️ 🤖
@@ -262,7 +263,7 @@ const PreGame = () => {
           }
           className="w-full"
         >
-          ✅ Lancer l'analyse
+          {t("launchAnalysis")}
         </Button>
       </div>
     </div>

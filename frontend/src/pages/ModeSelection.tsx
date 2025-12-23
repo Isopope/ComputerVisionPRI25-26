@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, Bot, Brain, BookOpen, ArrowLeft } from "lucide-react";
 import { ModeButton } from "@/components/ModeButton";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
@@ -9,10 +10,10 @@ import { useLanguage } from "@/hooks/useLanguage";
 type GameMode = "ai-pure" | "ai-vs-human" | "explanatory" | null;
 
 const ModeSelection = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLang();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
-  
+
   const gameFromUrl = searchParams.get("game");
   const [selectedMode, setSelectedMode] = useState<GameMode>(null);
 
@@ -29,7 +30,7 @@ const ModeSelection = () => {
         navigate(`/game?game=${gameFromUrl}&mode=${selectedMode}`);
         return;
       }
-      
+
       // Pour tous les autres jeux (Charlie, Dobble), passer par PreGame
       // pour choisir le mode de capture (capture/upload/realtime)
       navigate(`/pregame?game=${gameFromUrl}&mode=${selectedMode}`);
@@ -43,7 +44,7 @@ const ModeSelection = () => {
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
-      
+
       {/* Navigation en haut */}
       <div className="relative z-10 w-full max-w-lg mx-auto flex gap-3 mb-6">
         <Button
@@ -52,7 +53,7 @@ const ModeSelection = () => {
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour
+          {t("back")}
         </Button>
         <Button
           variant="ghost"

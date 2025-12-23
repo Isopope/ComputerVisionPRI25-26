@@ -1,11 +1,14 @@
 import { Card } from "@/components/ui/card";
 import { Trophy } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface ScorePanelProps {
   score: number;
 }
 
 export const ScorePanel = ({ score }: ScorePanelProps) => {
+  const { t } = useLanguage();
+
   return (
     <Card className="p-6 bg-card">
       <div className="space-y-4">
@@ -19,7 +22,7 @@ export const ScorePanel = ({ score }: ScorePanelProps) => {
             {score}
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            Continue comme ça !
+            {t("continueGoodWork")}
           </p>
         </div>
       </div>
