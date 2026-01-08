@@ -61,7 +61,7 @@ class GestureRecognizer:
                 pre_processed_landmark_list = self._pre_process_landmark(landmark_list)
                 
                 # Hand Sign Classification
-                hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
+                hand_sign_id, probabilities = self.keypoint_classifier(pre_processed_landmark_list)
                 
                 gesture_name = "Unknown"
                 if 0 <= hand_sign_id < len(self.keypoint_classifier_labels):
@@ -70,17 +70,14 @@ class GestureRecognizer:
                 # Bounding box calculation
                 brect = self._calc_bounding_rect(image, hand_landmarks)
                 
-                # Confidence - keypoint classifier returns index, not confidence directly.
-                # But we can assume high confidence if it returned a valid index.
-                # However, main.py expects a float. We'll use a placeholder or derived score.
-                # Since KeyPointClassifier just does argmax, we don't have probability API exposed yet 
-                # unless we modify KeyPointClassifier to return it.
-                # For now, we'll return 1.0 if detection is successful.
+                # Confidence - use the max probability from the classifier
+                confidence = float(np.max(probabilities))
                 
                 return {
                     "hand_detected": True,
                     "gesture": gesture_name,
-                    "confidence": 0.95, # Placeholder, as TFLite classifier wrapper returns only index
+                    "confidence": confidence,
+                    "probabilities": probabilities,
                     "landmarks": landmark_list,
                     "bounding_box": brect,
                     "handedness": handedness.classification[0].label[0:] # "Right" or "Left"

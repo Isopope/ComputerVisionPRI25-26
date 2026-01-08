@@ -30,7 +30,9 @@ class KeyPointClassifier(object):
         output_details_tensor_index = self.output_details[0]['index']
 
         result = self.interpreter.get_tensor(output_details_tensor_index)
+        
+        # Remove single-dimensional entries from the shape of an array.
+        squeezed_result = np.squeeze(result)
+        result_index = np.argmax(squeezed_result)
 
-        result_index = np.argmax(np.squeeze(result))
-
-        return result_index
+        return result_index, squeezed_result.tolist()

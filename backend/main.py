@@ -678,6 +678,7 @@ async def websocket_gesture(websocket: WebSocket):
                     "gesture": mapped_gesture,
                     "raw_gesture": raw_gesture,
                     "confidence": result["confidence"],
+                    "probabilities": result.get("probabilities", []),
                     "landmarks": normalized_landmarks
                 })
                 
