@@ -29,7 +29,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
 
     // Détecter le saut (changement de geste) pour l'étape 4
     useEffect(() => {
-        if (step !== 3) return; // Seulement actif à l'étape 3 (index 3 = Action)
+        if (step !== 4) return; // Seulement actif à l'étape 4 (index 4 = Action)
 
         const current = gestureData.raw_gesture;
         if (!current || current === "neutral") return;
@@ -128,8 +128,71 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
             )
         },
         {
-            title: t("step3TrainingTitle"),
+            title: t("step2Classification"),
             icon: <Brain className="w-12 h-12 text-orange-500" />,
+            explanation: (
+                <div className="space-y-6">
+                    <h2 className="text-3xl font-bold">{t("shapeRecognition")}</h2>
+                    <p className="text-xl text-muted-foreground leading-relaxed">
+                        {t("shapeComparison")}
+                    </p>
+                    <div className="space-y-4">
+                        <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "bg-green-100 border-green-500 dark:bg-green-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
+                            <span className="font-bold text-lg">{t("classOpen")}</span>
+                            <span className="text-4xl">✋</span>
+                        </div>
+                        <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Close" || gestureData.raw_gesture === "Pointer" ? "bg-orange-100 border-orange-500 dark:bg-orange-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
+                            <span className="font-bold text-lg">{t("classRest")}</span>
+                            <span className="text-4xl">✊</span>
+                        </div>
+                    </div>
+                </div>
+            ),
+            visual: (
+                <div className="relative w-full h-full flex flex-col items-center justify-center p-8 bg-black/5 rounded-3xl gap-8">
+                    {/* Classification Targets */}
+                    <div className="flex w-full justify-between px-8">
+                        <div className={cn("w-32 h-32 rounded-2xl border-4 flex flex-col items-center justify-center transition-all duration-300 bg-card", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "border-green-500 scale-110 shadow-[0_0_30px_rgba(34,197,94,0.3)]" : "border-muted opacity-50")}>
+                            <div className="text-5xl mb-2">✋</div>
+                            <div className="text-xs font-bold bg-green-500 text-white px-2 py-1 rounded">{t("open")}</div>
+                        </div>
+
+                        <div className={cn("w-32 h-32 rounded-2xl border-4 flex flex-col items-center justify-center transition-all duration-300 bg-card", gestureData.raw_gesture === "Close" ? "border-orange-500 scale-110 shadow-[0_0_30px_rgba(249,115,22,0.3)]" : "border-muted opacity-50")}>
+                            <div className="text-5xl mb-2">✊</div>
+                            <div className="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">{t("rest")}</div>
+                        </div>
+                    </div>
+
+                    {/* User Hand */}
+                    {gestureData.landmarks && gestureData.landmarks.length > 0 ? (
+                        <div className="relative w-64 h-64 bg-white dark:bg-black rounded-full shadow-2xl overflow-visible border-4 border-muted flex items-center justify-center">
+                            {/* Connecting Line Logic (Visual Only) */}
+                            <div className={cn("absolute w-full h-2 bg-gradient-to-r from-transparent via-current to-transparent transition-all duration-300 transform -z-10",
+                                gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "text-green-500 -rotate-45 -translate-y-32 -translate-x-32 scale-x-150" :
+                                    gestureData.raw_gesture === "Close" ? "text-orange-500 rotate-45 -translate-y-32 translate-x-32 scale-x-150" : "opacity-0"
+                            )} />
+
+                            <svg className="w-48 h-48" viewBox="0 0 1 1" style={{ transform: "scaleX(-1)" }}>
+                                {gestureData.landmarks.map((point, index) => (
+                                    <circle key={index} cx={point.x} cy={point.y} r="0.02" fill={index % 4 === 0 ? "currentColor" : "#94a3b8"} className="text-primary" />
+                                ))}
+                            </svg>
+
+                            <div className="absolute -bottom-12 bg-background px-4 py-2 rounded-full border shadow font-mono text-sm">
+                                {t("input")}: {gestureData.raw_gesture || "?"}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center animate-pulse text-muted-foreground w-64 h-64 flex items-center justify-center border-4 border-dashed rounded-full">
+                            {t("waitingForHand")}
+                        </div>
+                    )}
+                </div>
+            )
+        },
+        {
+            title: t("step3TrainingTitle"),
+            icon: <Activity className="w-12 h-12 text-pink-500" />,
             explanation: (
                 <div className="space-y-6">
                     <h2 className="text-3xl font-bold">{t("step3TrainingTitle")}</h2>
