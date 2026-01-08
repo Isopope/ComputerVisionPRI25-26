@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
-import { Home, RotateCcw } from "lucide-react";
+import { Home, RotateCcw, ArrowLeft } from "lucide-react";
 import { DinoGameCanvas } from "@/components/DinoGameCanvas";
 import { GestureDetector } from "@/components/GestureDetector";
 import { ScorePanel } from "@/components/ScorePanel";
@@ -105,15 +105,26 @@ const DinoGame = () => {
       <div className="relative z-10 w-full max-w-7xl mx-auto space-y-6">
         {/* Navigation */}
         <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/")}
-            className="gap-2"
-          >
-            <Home className="w-4 h-4" />
-            {t("home") || "Accueil"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/mode?game=dino`)}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t("back")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/")}
+              className="gap-2"
+            >
+              <Home className="w-4 h-4" />
+              {t("home") || "Accueil"}
+            </Button>
+          </div>
 
           <h1 className="text-3xl font-bold text-foreground">
             🦕 {t("dinoRun") || "Dino Run"}

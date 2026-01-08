@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, RotateCcw, Trophy } from "lucide-react";
+import { Home, RotateCcw, Trophy, ArrowLeft } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -206,6 +206,14 @@ export const AIvsHumanDobbleMode = ({
 
       {/* Navigation */}
       <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "ai-vs-human"}`)}
+          className="gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t("back")}
+        </Button>
         <Button
           variant="ghost"
           onClick={() => navigate("/")}

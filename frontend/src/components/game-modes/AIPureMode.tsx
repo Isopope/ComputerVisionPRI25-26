@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Home, RotateCcw, ArrowRight, HelpCircle } from "lucide-react";
+import { Home, RotateCcw, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -30,6 +30,14 @@ export const AIPureMode = ({
 
       {/* Navigation en haut */}
       <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "ai-pure"}`)}
+          className="gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t("back")}
+        </Button>
         <Button
           variant="ghost"
           onClick={() => navigate("/")}

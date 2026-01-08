@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, Video, Activity } from "lucide-react";
+import { Home, Video, Activity, ArrowLeft } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -128,6 +128,14 @@ export const RealtimeDobbleMode = ({
             <AnimatedBackground />
 
             <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
+                <Button
+                    variant="ghost"
+                    onClick={() => navigate(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "realtime"}`)}
+                    className="gap-2"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    {t("back")}
+                </Button>
                 <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
                     <Home className="w-4 h-4" />
                     {t("backHome")}
