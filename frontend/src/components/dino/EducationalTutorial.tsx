@@ -128,65 +128,81 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
             )
         },
         {
-            title: t("step2Classification"),
+            title: t("step3TrainingTitle"),
             icon: <Brain className="w-12 h-12 text-orange-500" />,
             explanation: (
                 <div className="space-y-6">
-                    <h2 className="text-3xl font-bold">{t("shapeRecognition")}</h2>
+                    <h2 className="text-3xl font-bold">{t("step3TrainingTitle")}</h2>
                     <p className="text-xl text-muted-foreground leading-relaxed">
-                        {t("shapeComparison")}
+                        {t("step3TrainingDesc")}
                     </p>
+
                     <div className="space-y-4">
-                        <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "bg-green-100 border-green-500 dark:bg-green-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
-                            <span className="font-bold text-lg">{t("classOpen")}</span>
-                            <span className="text-4xl">✋</span>
+                        <div className="p-4 bg-orange-100 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
+                            <h3 className="font-bold text-orange-700 dark:text-orange-400 mb-2 flex items-center gap-2">
+                                <Activity className="w-5 h-5" /> {t("trainingVsInference")}
+                            </h3>
+                            <p className="text-sm">{t("trainingAnalogy")}</p>
                         </div>
-                        <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Close" || gestureData.raw_gesture === "Pointer" ? "bg-orange-100 border-orange-500 dark:bg-orange-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
-                            <span className="font-bold text-lg">{t("classRest")}</span>
-                            <span className="text-4xl">✊</span>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className={cn("p-4 rounded-xl border flex flex-col items-center justify-center transition-colors text-center", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "bg-green-100 border-green-500 dark:bg-green-900/20 scale-105" : "bg-card")}>
+                                <div className="text-3xl mb-1">✋</div>
+                                <span className="font-bold text-sm">{t("classOpen")}</span>
+                            </div>
+                            <div className={cn("p-4 rounded-xl border flex flex-col items-center justify-center transition-colors text-center", gestureData.raw_gesture === "Close" || gestureData.raw_gesture === "Pointer" ? "bg-orange-100 border-orange-500 dark:bg-orange-900/20 scale-105" : "bg-card")}>
+                                <div className="text-3xl mb-1">✊</div>
+                                <span className="font-bold text-sm">{t("classRest")}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             ),
             visual: (
-                <div className="relative w-full h-full flex flex-col items-center justify-center p-8 bg-black/5 rounded-3xl gap-8">
-                    {/* Classification Targets */}
-                    <div className="flex w-full justify-between px-8">
-                        <div className={cn("w-32 h-32 rounded-2xl border-4 flex flex-col items-center justify-center transition-all duration-300 bg-card", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "border-green-500 scale-110 shadow-[0_0_30px_rgba(34,197,94,0.3)]" : "border-muted opacity-50")}>
-                            <div className="text-5xl mb-2">✋</div>
-                            <div className="text-xs font-bold bg-green-500 text-white px-2 py-1 rounded">{t("open")}</div>
+                <div className="relative w-full h-full flex flex-col items-center justify-center p-6 gap-6">
+                    {/* Neural Network Visualization */}
+                    <div className="bg-card w-full max-w-md p-6 rounded-2xl border shadow-xl flex flex-col items-center gap-4">
+                        <div className="text-center mb-2">
+                            <div className="font-bold text-lg">{t("neuralNetwork")} (.tflite)</div>
+                            <div className="text-xs text-muted-foreground">{t("layersExplanation")}</div>
                         </div>
 
-                        <div className={cn("w-32 h-32 rounded-2xl border-4 flex flex-col items-center justify-center transition-all duration-300 bg-card", gestureData.raw_gesture === "Close" ? "border-orange-500 scale-110 shadow-[0_0_30px_rgba(249,115,22,0.3)]" : "border-muted opacity-50")}>
-                            <div className="text-5xl mb-2">✊</div>
-                            <div className="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">{t("rest")}</div>
-                        </div>
-                    </div>
-
-                    {/* User Hand */}
-                    {gestureData.landmarks && gestureData.landmarks.length > 0 ? (
-                        <div className="relative w-64 h-64 bg-white dark:bg-black rounded-full shadow-2xl overflow-visible border-4 border-muted flex items-center justify-center">
-                            {/* Connecting Line Logic (Visual Only) */}
-                            <div className={cn("absolute w-full h-2 bg-gradient-to-r from-transparent via-current to-transparent transition-all duration-300 transform -z-10",
-                                gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "text-green-500 -rotate-45 -translate-y-32 -translate-x-32 scale-x-150" :
-                                    gestureData.raw_gesture === "Close" ? "text-orange-500 rotate-45 -translate-y-32 translate-x-32 scale-x-150" : "opacity-0"
-                            )} />
-
-                            <svg className="w-48 h-48" viewBox="0 0 1 1" style={{ transform: "scaleX(-1)" }}>
-                                {gestureData.landmarks.map((point, index) => (
-                                    <circle key={index} cx={point.x} cy={point.y} r="0.02" fill={index % 4 === 0 ? "currentColor" : "#94a3b8"} className="text-primary" />
+                        <div className="flex items-center justify-center gap-8 w-full">
+                            {/* Inputs (Landmarks) */}
+                            <div className="flex flex-col gap-1 justify-center h-32">
+                                {[...Array(6)].map((_, i) => (
+                                    <div key={i} className="w-3 h-3 rounded-full bg-blue-400 animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
                                 ))}
-                            </svg>
+                                <div className="text-[10px] text-center mt-1 text-muted-foreground">42 inputs</div>
+                            </div>
 
-                            <div className="absolute -bottom-12 bg-background px-4 py-2 rounded-full border shadow font-mono text-sm">
-                                {t("input")}: {gestureData.raw_gesture || "?"}
+                            {/* Hidden Layers (Abstract) */}
+                            <div className="flex-1 h-32 flex items-center justify-center relative border-x border-dashed border-muted/50 px-4">
+                                <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                                    <Activity className="w-24 h-24" />
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {[...Array(9)].map((_, i) => (
+                                        <div key={i} className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Outputs (Classes) */}
+                            <div className="flex flex-col gap-4 justify-center">
+                                <div className={cn("px-3 py-1 rounded border text-xs font-bold transition-all", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "bg-green-500 text-white scale-110 shadow-lg" : "bg-muted")}>
+                                    OPEN
+                                </div>
+                                <div className={cn("px-3 py-1 rounded border text-xs font-bold transition-all", gestureData.raw_gesture === "Close" ? "bg-orange-500 text-white scale-110 shadow-lg" : "bg-muted")}>
+                                    CLOSE
+                                </div>
                             </div>
                         </div>
-                    ) : (
-                        <div className="text-center animate-pulse text-muted-foreground w-64 h-64 flex items-center justify-center border-4 border-dashed rounded-full">
-                            {t("waitingForHand")}
+
+                        <div className="w-full bg-muted/50 rounded-lg p-3 text-xs text-center border mt-2">
+                            <span className="font-bold">✨ {t("frozenModel")} :</span> {t("frozenModelDesc")}
                         </div>
-                    )}
+                    </div>
                 </div>
             )
         },
