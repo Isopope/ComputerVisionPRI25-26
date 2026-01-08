@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, RotateCcw } from "lucide-react";
@@ -36,7 +36,8 @@ const DinoGame = () => {
     }
   }, [mode, navigate]);
 
-  const handleGestureDetected = (gestureData: { gesture: string; confidence: number; raw_gesture?: string; landmarks?: any[] }) => {
+  // CRITICAL FIX: Memoize the callback to prevent WebSocket reconnections
+  const handleGestureDetected = useCallback((gestureData: { gesture: string; confidence: number; raw_gesture?: string; landmarks?: any[] }) => {
     // Mettre à jour les données pour le tutoriel (si actif)
     if (showTutorial) {
       setLastGestureData(gestureData);
@@ -68,7 +69,7 @@ const DinoGame = () => {
     }
 
     lastRawGestureRef.current = currentRawGesture;
-  };
+  }, [showTutorial]); // Only recreate when showTutorial changes
 
   const handleGameOver = (finalScore: number) => {
     setScore(finalScore);

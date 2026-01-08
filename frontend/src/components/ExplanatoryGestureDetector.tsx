@@ -49,6 +49,12 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
     const animationFrameRef = useRef<number | null>(null);
     const lastSendTimeRef = useRef<number>(0);
 
+    // CRITICAL FIX: Store callback in ref to prevent WebSocket reconnections
+    const onGestureDetectedRef = useRef(onGestureDetected);
+    useEffect(() => {
+        onGestureDetectedRef.current = onGestureDetected;
+    }, [onGestureDetected]);
+
     // FPS counter refs
     const frameCountRef = useRef<number>(0);
     const lastFpsUpdateRef = useRef<number>(0);
@@ -206,7 +212,8 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
         };
         const action = actionMap[mostFrequentGesture] || "NEUTRAL";
 
-        onGestureDetected({
+        // Use ref instead of direct dependency
+        onGestureDetectedRef.current({
             gesture: mostFrequentGesture,
             confidence: data.confidence,
             landmarks: data.landmarks,
@@ -227,7 +234,7 @@ export const ExplanatoryGestureDetector = ({ onGestureDetected, fps = 60 }: Expl
             t("action"),
             t("noHandDetected")
         );
-    }, [onGestureDetected, videoRef]);
+    }, [videoRef, t]); // Removed onGestureDetected from dependencies
 
     useEffect(() => {
         if (!isReady || !videoRef.current || !canvasRef.current) return;
