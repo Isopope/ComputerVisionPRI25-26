@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, RotateCcw, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export const AIPureMode = ({
   yoloMutation,
 }: AIPureModeProps) => {
   const navigate = useNavigate();
+  const navigateWithLang = useNavigateWithLang();
   const { t } = useLanguage();
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -33,7 +35,7 @@ export const AIPureMode = ({
       <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "ai-pure"}`)}
+          onClick={() => navigateWithLang(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "ai-pure"}`)}
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -41,7 +43,7 @@ export const AIPureMode = ({
         </Button>
         <Button
           variant="ghost"
-          onClick={() => navigate("/")}
+          onClick={() => navigateWithLang("/")}
           className="gap-2"
         >
           <Home className="w-4 h-4" />
@@ -124,7 +126,7 @@ export const AIPureMode = ({
           <div className="flex flex-wrap gap-3 justify-center">
             <Button
               variant="secondary"
-              onClick={() => navigate(`/pregame?game=${gameFromUrl}&mode=${modeFromUrl}`)}
+              onClick={() => navigateWithLang(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "ai-pure"}`)}
               className="gap-2"
             >
               <RotateCcw className="w-4 h-4" />
@@ -132,7 +134,7 @@ export const AIPureMode = ({
             </Button>
             <Button
               variant="accent"
-              onClick={() => navigate(`/mode?game=${gameFromUrl}`)}
+              onClick={() => navigateWithLang(`/mode?game=${gameFromUrl || "dobble"}`)}
               className="gap-2"
             >
               {t("nextMode")}
@@ -203,7 +205,7 @@ export const AIPureMode = ({
               className="w-full gap-2"
               onClick={() => {
                 if (yoloMutation.data) {
-                  navigate(`/explanation?game=${gameFromUrl}&mode=${modeFromUrl}`, {
+                  navigateWithLang(`/explanation?game=${gameFromUrl}&mode=${modeFromUrl}`, {
                     state: {
                       yoloResult: yoloMutation.data.result,
                       capturedImage: capturedImageFromState

@@ -4,10 +4,10 @@
 - gestions des ressources, en occurence la camera
 
 -proposer un quizz final apres le mode explicabilite de chaque jeu (done for dino run)
--curseur pour le seuil de confiance de reconnaissance de dobble ( definir dans quel mode il serait plus utile)
--indication visuelle false quand l'utilisateur clique sur un mauvais symbole
+-curseur pour le seuil de confiance de reconnaissance de dobble ( fait)
+-indication visuelle false quand l'utilisateur clique sur un mauvais symbole (fait)
 
 ===reunion du mercredi 14 janvier=========
 - penser a aborder le sujet du banc de test pour tester l'appli en conditions de reel
 -une suggestion du mode explicatif de dino run est deja propose voir avec Mr Rayar
-- discuter du mode explicatif de dobble
+- discuter du mode explicatif de dobble (fait  version temporaire)

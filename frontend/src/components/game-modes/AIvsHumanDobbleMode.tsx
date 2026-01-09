@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
 import { Home, RotateCcw, Trophy, ArrowLeft, HelpCircle } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export const AIvsHumanDobbleMode = ({
   yoloMutation,
 }: AIvsHumanDobbleModeProps) => {
   const navigate = useNavigate();
+  const navigateWithLang = useNavigateWithLang();
   const { t } = useLanguage();
 
   // États du jeu
@@ -53,7 +55,7 @@ export const AIvsHumanDobbleMode = ({
   useEffect(() => {
     // Sécurité supplémentaire : redirection si mauvais sous-mode
     if (subModeFromUrl !== "capture") {
-      navigate("/");
+      navigateWithLang("/");
       return;
     }
 
@@ -204,7 +206,7 @@ export const AIvsHumanDobbleMode = ({
     setWinner(null);
     setCommonSymbol(null);
     gameStartTimeRef.current = 0;
-    navigate(`/pregame?game=${gameFromUrl}&mode=${modeFromUrl}`);
+    navigateWithLang(`/pregame?game=${gameFromUrl}&mode=${modeFromUrl}`);
   };
 
   return (
@@ -215,7 +217,7 @@ export const AIvsHumanDobbleMode = ({
       <div className="relative z-10 w-full max-w-6xl mx-auto flex gap-3 mb-6">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "ai-vs-human"}`)}
+          onClick={() => navigateWithLang(`/pregame?game=${gameFromUrl || "dobble"}&mode=${modeFromUrl || "ai-vs-human"}`)}
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -223,7 +225,7 @@ export const AIvsHumanDobbleMode = ({
         </Button>
         <Button
           variant="ghost"
-          onClick={() => navigate("/")}
+          onClick={() => navigateWithLang("/")}
           className="gap-2"
         >
           <Home className="w-4 h-4" />
@@ -279,11 +281,10 @@ export const AIvsHumanDobbleMode = ({
               {/* Click Feedback Indicator */}
               {clickFeedback && (
                 <div
-                  className={`absolute w-16 h-16 rounded-full border-4 pointer-events-none ${
-                    clickFeedback.success 
-                      ? 'border-green-500 bg-green-500/30 animate-ping' 
-                      : 'border-red-500 bg-red-500/30 animate-pulse'
-                  }`}
+                  className={`absolute w-16 h-16 rounded-full border-4 pointer-events-none ${clickFeedback.success
+                    ? 'border-green-500 bg-green-500/30 animate-ping'
+                    : 'border-red-500 bg-red-500/30 animate-pulse'
+                    }`}
                   style={{
                     left: `${clickFeedback.x}%`,
                     top: `${clickFeedback.y}%`,
@@ -347,7 +348,7 @@ export const AIvsHumanDobbleMode = ({
             </Button>
             <Button
               variant="accent"
-              onClick={() => navigate(`/mode?game=${gameFromUrl}`)}
+              onClick={() => navigateWithLang(`/mode?game=${gameFromUrl}`)}
               className="gap-2"
             >
               Changer de mode
@@ -366,12 +367,11 @@ export const AIvsHumanDobbleMode = ({
             {/* Nombre de tentatives */}
             <div className="flex justify-between items-center p-4 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border-2 border-primary/30">
               <span className="font-bold text-lg">👆 Clics</span>
-              <span className={`text-4xl font-black ${
-                humanClickAttempts === 0 ? 'text-muted-foreground' :
+              <span className={`text-4xl font-black ${humanClickAttempts === 0 ? 'text-muted-foreground' :
                 humanClickAttempts === 1 ? 'text-green-500' :
-                humanClickAttempts <= 3 ? 'text-yellow-500' :
-                'text-red-500'
-              }`}>
+                  humanClickAttempts <= 3 ? 'text-yellow-500' :
+                    'text-red-500'
+                }`}>
                 {humanClickAttempts}
               </span>
             </div>
@@ -423,7 +423,7 @@ export const AIvsHumanDobbleMode = ({
                 variant="outline"
                 className="w-full gap-2 mt-4"
                 onClick={() => {
-                  navigate(`/explanation?game=${gameFromUrl}&mode=${modeFromUrl}`, {
+                  navigateWithLang(`/explanation?game=${gameFromUrl}&mode=${modeFromUrl}`, {
                     state: {
                       yoloResult: aiDetectionResult,
                       capturedImage: capturedImageFromState

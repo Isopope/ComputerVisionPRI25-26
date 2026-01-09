@@ -10,7 +10,6 @@ import { BoundingBoxOverlay } from "@/components/BoundingBoxOverlay";
 import { useBackendHealth, useYoloDobbleAnalysis } from "@/hooks/useYolo";
 import { AIPureMode } from "@/components/game-modes/AIPureMode";
 import { AIvsHumanDobbleMode } from "@/components/game-modes/AIvsHumanDobbleMode";
-import { RealtimeDobbleMode } from "@/components/game-modes/RealtimeDobbleMode";
 
 // Symboles pour les cartes Dobble
 const DOBBLE_SYMBOLS = ["🌟", "🎯", "🎨", "🎪", "🎮", "🚀", "⚡", "💎", "🔥", "🌈", "🎵", "🎭", "🎲", "🏆", "💫", "🎸", "🎺", "🎻", "🥁", "🎤"];
@@ -165,15 +164,6 @@ const ActiveGame = () => {
     }
   };
 
-  // Rendu pour le mode Temps Réel - Dobble
-  if (modeFromUrl === "ai-pure" && subModeFromUrl === "realtime" && gameFromUrl === "dobble") {
-    return (
-      <RealtimeDobbleMode
-        gameFromUrl={gameFromUrl}
-        modeFromUrl={modeFromUrl}
-      />
-    );
-  }
 
 
   // Rendu pour le mode IA vs Humain - Dobble (nouveau composant avec YOLO)

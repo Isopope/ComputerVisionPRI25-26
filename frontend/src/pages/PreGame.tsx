@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { analyzeDobble } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 
-type SubMode = "capture" | "realtime" | null;
+type SubMode = "capture" | null;
 
 const PreGame = () => {
   const navigate = useNavigateWithLang();
@@ -126,7 +126,7 @@ const PreGame = () => {
           state: { capturedImage }
         });
       }
-    } else if (selectedSubMode === "realtime") {
+    } else {
       navigate(`/game?game=${gameFromUrl}&mode=${modeFromUrl}&submode=${selectedSubMode}`);
     }
   };
@@ -181,40 +181,22 @@ const PreGame = () => {
               🧠 Choix du sous-mode
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div
-              onClick={() => setSelectedSubMode("capture")}
-              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "capture" ? "ring-4 ring-primary pulse-ring" : ""
-                }`}
-            >
-              <div className="bg-primary text-primary-foreground p-4 rounded-full">
-                <Camera className="w-12 h-12" />
+              <div
+                onClick={() => setSelectedSubMode("capture")}
+                className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "capture" ? "ring-4 ring-primary pulse-ring" : ""
+                  }`}
+              >
+                <div className="bg-primary text-primary-foreground p-4 rounded-full">
+                  <Camera className="w-12 h-12" />
+                </div>
+                <h3 className="text-lg font-bold text-center">
+                  📸 Capture
+                </h3>
+                <p className="text-sm text-muted-foreground text-center">
+                  {t("takePhoto")}
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-center">
-                📸 Capture
-              </h3>
-              <p className="text-sm text-muted-foreground text-center">
-                {t("takePhoto")}
-              </p>
             </div>
-
-
-
-            <div
-              onClick={() => setSelectedSubMode("realtime")}
-              className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "realtime" ? "ring-4 ring-primary pulse-ring" : ""
-                }`}
-            >
-              <div className="bg-secondary text-secondary-foreground p-4 rounded-full rotate-slow">
-                <Video className="w-12 h-12" />
-              </div>
-              <h3 className="text-lg font-bold text-center">
-                🔄 {t("realTime")}
-              </h3>
-              <p className="text-sm text-muted-foreground text-center">
-                Analyse en continu
-              </p>
-            </div>
-          </div>
           </div>
         )}
 
@@ -265,26 +247,6 @@ const PreGame = () => {
               </div>
             )}
             <canvas ref={canvasRef} className="hidden" />
-          </div>
-        ) : selectedSubMode === "realtime" ? (
-          <div className="game-card p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-accent text-accent-foreground p-3 rounded-full">
-                <Video className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-semibold">
-                📷 Instructions
-              </h3>
-            </div>
-            <div className="flex flex-col items-center gap-4 p-4 bg-muted rounded-lg">
-              <div className="text-6xl">📱</div>
-              <p className="text-center text-sm text-muted-foreground">
-                {t("realTimeDesc")}
-              </p>
-              <div className="flex gap-2 text-3xl">
-                🎯 ➡️ 🔄 ➡️ 🤖
-              </div>
-            </div>
           </div>
         ) : null}
 
