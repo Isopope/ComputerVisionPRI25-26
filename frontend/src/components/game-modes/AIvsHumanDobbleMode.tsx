@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, RotateCcw, Trophy, ArrowLeft } from "lucide-react";
+import { Home, RotateCcw, Trophy, ArrowLeft, HelpCircle } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -42,6 +42,7 @@ export const AIvsHumanDobbleMode = ({
   const [humanClickedSymbol, setHumanClickedSymbol] = useState<string | null>(null);
   const [winner, setWinner] = useState<"human" | "ai" | "tie" | null>(null);
   const [commonSymbol, setCommonSymbol] = useState<string | null>(null);
+  const [clickFeedback, setClickFeedback] = useState<{ x: number; y: number; success: boolean } | null>(null);
 
   const gameStartTimeRef = useRef<number>(0);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -126,6 +127,10 @@ export const AIvsHumanDobbleMode = ({
 
     setHumanClickAttempts(prev => prev + 1);
 
+    // Show click indicator
+    setClickFeedback({ x: clickX, y: clickY, success: false });
+    setTimeout(() => setClickFeedback(null), 800);
+
     // Vérifier si le clic est proche de l'une des 2 occurrences du symbole commun
     const boundingBoxes = aiDetectionResult.bounding_boxes;
     if (!boundingBoxes || boundingBoxes.length === 0) return;
@@ -158,6 +163,9 @@ export const AIvsHumanDobbleMode = ({
         clearTimeout(revealTimeoutRef.current);
       }
 
+      // Update click feedback to success
+      setClickFeedback({ x: clickX, y: clickY, success: true });
+
       const now = Date.now();
       setHumanClickTime(now);
       setHumanFoundSymbol(true);
@@ -167,7 +175,6 @@ export const AIvsHumanDobbleMode = ({
       // Déterminer le gagnant immédiatement
       determineWinner(now, aiRevealDelay);
     }
-    // Pas de feedback sur les clics incorrects (mode silencieux)
   };
 
   // Fonction : gérer la sélection de difficulté
@@ -269,6 +276,33 @@ export const AIvsHumanDobbleMode = ({
                 </div>
               )}
 
+              {/* Click Feedback Indicator */}
+              {clickFeedback && (
+                <div
+                  className={`absolute w-16 h-16 rounded-full border-4 pointer-events-none ${
+                    clickFeedback.success 
+                      ? 'border-green-500 bg-green-500/30 animate-ping' 
+                      : 'border-red-500 bg-red-500/30 animate-pulse'
+                  }`}
+                  style={{
+                    left: `${clickFeedback.x}%`,
+                    top: `${clickFeedback.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  {!clickFeedback.success && (
+                    <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-red-500">
+                      ✕
+                    </div>
+                  )}
+                  {clickFeedback.success && (
+                    <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-green-500">
+                      ✓
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Révélation de la position du symbole commun */}
               {(gamePhase === "revealed" || gamePhase === "finished") && aiDetectionResult && imageRef.current && (
                 <>
@@ -330,9 +364,14 @@ export const AIvsHumanDobbleMode = ({
             </h3>
 
             {/* Nombre de tentatives */}
-            <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-              <span className="font-semibold">👆 Clics</span>
-              <span className="text-2xl font-bold text-primary">
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border-2 border-primary/30">
+              <span className="font-bold text-lg">👆 Clics</span>
+              <span className={`text-4xl font-black ${
+                humanClickAttempts === 0 ? 'text-muted-foreground' :
+                humanClickAttempts === 1 ? 'text-green-500' :
+                humanClickAttempts <= 3 ? 'text-yellow-500' :
+                'text-red-500'
+              }`}>
                 {humanClickAttempts}
               </span>
             </div>
@@ -377,6 +416,25 @@ export const AIvsHumanDobbleMode = ({
                 </span>
               </div>
             ) : null}
+
+            {/* Bouton explication du processus */}
+            {aiDetectionResult && (
+              <Button
+                variant="outline"
+                className="w-full gap-2 mt-4"
+                onClick={() => {
+                  navigate(`/explanation?game=${gameFromUrl}&mode=${modeFromUrl}`, {
+                    state: {
+                      yoloResult: aiDetectionResult,
+                      capturedImage: capturedImageFromState
+                    }
+                  });
+                }}
+              >
+                <HelpCircle className="w-4 h-4" />
+                {t("explainProcess")}
+              </Button>
+            )}
           </div>
 
           {/* Résultat final */}

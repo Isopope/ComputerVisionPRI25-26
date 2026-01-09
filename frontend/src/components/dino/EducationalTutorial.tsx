@@ -98,7 +98,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
         const correct = index === questions[currentQuestion].correct;
         setIsAnswerCorrect(correct);
         if (correct) setQuizScore(s => s + 1);
-        
+
         setTimeout(() => {
             if (currentQuestion < questions.length - 1) {
                 setCurrentQuestion(c => c + 1);
@@ -157,6 +157,51 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     <p className="text-xl text-muted-foreground leading-relaxed">
                         {t("mediaPipeExplanation")}
                     </p>
+
+                    {/* NOUVEAU : Pipeline 2 IA */}
+                    <div className="p-4 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl border-l-4 border-purple-500 space-y-3">
+                        <h3 className="font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
+                            {t("aiPipelineTitle")}
+                        </h3>
+                        <p className="text-sm text-purple-900 dark:text-purple-200">
+                            {t("aiPipelineExplain")}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs font-mono bg-white/50 dark:bg-black/20 p-3 rounded-lg overflow-x-auto">
+                            <span className="text-2xl">📷</span>
+                            <span>→</span>
+                            <span className="px-2 py-1 bg-purple-500 text-white rounded font-bold whitespace-nowrap">IA #1: MediaPipe</span>
+                            <span>→</span>
+                            <span className="text-lg">🖐️ 21 pts</span>
+                            <span>→</span>
+                            <span className="px-2 py-1 bg-blue-500 text-white rounded font-bold whitespace-nowrap">IA #2: Classificateur</span>
+                            <span>→</span>
+                            <span className="text-2xl">✋</span>
+                        </div>
+                    </div>
+
+                    {/* NOUVEAU : Qu'est-ce que MediaPipe */}
+                    <div className="p-4 bg-muted/50 rounded-xl space-y-2">
+                        <h3 className="font-bold flex items-center gap-2">
+                            {t("whatIsMediaPipe")}
+                        </h3>
+                        <p className="text-sm leading-relaxed">
+                            {t("mediaPipeDetail")}
+                        </p>
+                    </div>
+
+                    {/* NOUVEAU : Comment a-t-elle été entraînée (Annotation) */}
+                    <div className="p-4 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-200 dark:border-green-800 space-y-2">
+                        <h3 className="font-bold text-green-800 dark:text-green-400 flex items-center gap-2">
+                            {t("howWasItTrained")}
+                        </h3>
+                        <p className="text-sm text-green-900 dark:text-green-200 leading-relaxed">
+                            {t("annotationExplain")}
+                        </p>
+                        <div className="text-xs font-mono bg-white/50 dark:bg-black/20 p-2 rounded text-center">
+                            {t("annotationExample")}
+                        </div>
+                    </div>
+
                     <div className="flex items-center gap-3 text-purple-600 font-bold bg-purple-100 dark:bg-purple-900/20 p-4 rounded-lg">
                         <Brain className="w-6 h-6" />
                         <span>{t("tryMovingHand")}</span>
@@ -326,27 +371,27 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
 
                             <ArrowRight className="text-muted/30 w-8 h-8 flex-shrink-0" />
 
-                        {/* Outputs (Classes) */}
+                            {/* Outputs (Classes) */}
                             <div className="flex flex-col gap-2 justify-center w-1/4 h-full">
                                 <div className="text-xs text-center font-bold mb-1 uppercase text-muted-foreground">Output (Prob.)</div>
                                 <div className="flex flex-col gap-4 justify-center h-full">
                                     {/* Class 0: Open */}
-                                    <div className={cn("px-2 py-3 rounded-lg border text-sm font-bold transition-all text-center flex flex-col gap-1", 
+                                    <div className={cn("px-2 py-3 rounded-lg border text-sm font-bold transition-all text-center flex flex-col gap-1",
                                         gestureData.raw_gesture === "Open" ? "bg-green-500 text-white scale-110 shadow-lg" : "bg-card opacity-50")}>
                                         <span>OPEN</span>
                                         <span className="text-[10px] opacity-80">
-                                            {gestureData.probabilities && gestureData.probabilities.length > 0 
-                                                ? `${(gestureData.probabilities[0] * 100).toFixed(1)}%` 
+                                            {gestureData.probabilities && gestureData.probabilities.length > 0
+                                                ? `${(gestureData.probabilities[0] * 100).toFixed(1)}%`
                                                 : (gestureData.raw_gesture === "Open" ? "99%" : "1%")}
                                         </span>
                                     </div>
                                     {/* Class 1: Close */}
-                                    <div className={cn("px-2 py-3 rounded-lg border text-sm font-bold transition-all text-center flex flex-col gap-1", 
+                                    <div className={cn("px-2 py-3 rounded-lg border text-sm font-bold transition-all text-center flex flex-col gap-1",
                                         gestureData.raw_gesture === "Close" ? "bg-orange-500 text-white scale-110 shadow-lg" : "bg-card opacity-50")}>
                                         <span>CLOSED</span>
                                         <span className="text-[10px] opacity-80">
-                                            {gestureData.probabilities && gestureData.probabilities.length > 1 
-                                                ? `${(gestureData.probabilities[1] * 100).toFixed(1)}%` 
+                                            {gestureData.probabilities && gestureData.probabilities.length > 1
+                                                ? `${(gestureData.probabilities[1] * 100).toFixed(1)}%`
                                                 : (gestureData.raw_gesture === "Close" ? "99%" : "1%")}
                                         </span>
                                     </div>
@@ -370,6 +415,24 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     <div className="p-4 bg-muted/50 rounded-xl border-l-4 border-orange-500">
                         <p className="text-sm italic">{t("classificationProbabilities")}</p>
                     </div>
+
+                    {/* NOUVEAU : Section Limites du Modèle */}
+                    <div className="p-4 bg-yellow-100 dark:bg-yellow-900/20 rounded-xl border-l-4 border-yellow-500 space-y-2">
+                        <h3 className="font-bold text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
+                            {t("modelLimitations")}
+                        </h3>
+                        <p className="text-sm text-yellow-900 dark:text-yellow-200 leading-relaxed">
+                            {t("modelLimitationsExplain")}
+                        </p>
+                        <div className="flex gap-2 text-2xl justify-center pt-2 opacity-50 grayscale">
+                            <span title="Non reconnu">✌️</span>
+                            <span title="Non reconnu">🤘</span>
+                            <span title="Non reconnu">👍</span>
+                            <span title="Non reconnu">🤙</span>
+                            <span className="text-sm self-center">← {t("trainingDataMissing")}</span>
+                        </div>
+                    </div>
+
                     <div className="space-y-4">
                         <div className={cn("p-4 rounded-xl border flex items-center justify-between transition-colors", gestureData.raw_gesture === "Open" || gestureData.raw_gesture === "OK" ? "bg-green-100 border-green-500 dark:bg-green-900/20 shadow-lg scale-105" : "opacity-40 grayscale")}>
                             <span className="font-bold text-lg">{t("classOpen")}</span>
@@ -392,9 +455,9 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                             {gestureData.probabilities && gestureData.probabilities.length >= 2 && (
                                 <div className="text-[10px] font-mono opacity-80">
                                     {(
-                                        ((gestureData.probabilities[0] || 0) + 
-                                        ((gestureData.probabilities.length > 3 ? gestureData.probabilities[3] : 0) || 0))
-                                     * 100).toFixed(1)}%
+                                        ((gestureData.probabilities[0] || 0) +
+                                            ((gestureData.probabilities.length > 3 ? gestureData.probabilities[3] : 0) || 0))
+                                        * 100).toFixed(1)}%
                                 </div>
                             )}
                         </div>
@@ -405,9 +468,9 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                             {gestureData.probabilities && gestureData.probabilities.length >= 2 && (
                                 <div className="text-[10px] font-mono opacity-80">
                                     {(
-                                        ((gestureData.probabilities[1] || 0) + 
-                                        ((gestureData.probabilities.length > 2 ? gestureData.probabilities[2] : 0) || 0))
-                                     * 100).toFixed(1)}%
+                                        ((gestureData.probabilities[1] || 0) +
+                                            ((gestureData.probabilities.length > 2 ? gestureData.probabilities[2] : 0) || 0))
+                                        * 100).toFixed(1)}%
                                 </div>
                             )}
                         </div>
@@ -452,6 +515,13 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     <div className="p-6 bg-red-100 dark:bg-red-900/20 rounded-xl text-center space-y-2">
                         <p className="text-lg font-bold text-red-600 dark:text-red-400">{t("actionInstruction")}</p>
                         <div className="text-4xl font-black">{jumpCount} {t("jumps")}</div>
+                    </div>
+
+                    {/* NOUVEAU : Rappel des limites */}
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs text-blue-800 dark:text-blue-300 text-center">
+                            {t("actionLimitation")}
+                        </p>
                     </div>
                 </div>
             ),
@@ -527,7 +597,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     <h2 className="text-3xl font-bold">
                         {quizCompleted ? t("results") : t("question") + ` ${currentQuestion + 1}/${questions.length}`}
                     </h2>
-                    
+
                     {!quizStarted ? (
                         <div className="space-y-4">
                             <p className="text-xl text-muted-foreground leading-relaxed">
@@ -569,17 +639,17 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                                         disabled={selectedAnswer !== null}
                                         className={cn(
                                             "w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-center justify-between group hover:shadow-md",
-                                            selectedAnswer === null 
-                                                ? "hover:bg-accent hover:border-primary/50" 
-                                                : selectedAnswer === idx 
+                                            selectedAnswer === null
+                                                ? "hover:bg-accent hover:border-primary/50"
+                                                : selectedAnswer === idx
                                                     ? (idx === questions[currentQuestion].correct ? "bg-green-500 text-white border-green-600" : "bg-red-500 text-white border-red-600")
                                                     : (idx === questions[currentQuestion].correct ? "bg-green-100 dark:bg-green-900/30 border-green-500" : "opacity-50")
                                         )}
                                     >
                                         <span className="font-medium">{opt}</span>
                                         {selectedAnswer === idx && (
-                                            idx === questions[currentQuestion].correct 
-                                                ? <CheckCircle className="w-5 h-5" /> 
+                                            idx === questions[currentQuestion].correct
+                                                ? <CheckCircle className="w-5 h-5" />
                                                 : <XCircle className="w-5 h-5" />
                                         )}
                                     </button>
@@ -598,41 +668,41 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                         </div>
                     ) : quizCompleted ? (
                         <div className="relative">
-                             <div className="absolute inset-0 bg-yellow-500/20 blur-3xl rounded-full animate-pulse" />
-                             <Trophy className="w-64 h-64 text-yellow-500 relative z-10 animate-in zoom-in spin-in-12 duration-700" />
+                            <div className="absolute inset-0 bg-yellow-500/20 blur-3xl rounded-full animate-pulse" />
+                            <Trophy className="w-64 h-64 text-yellow-500 relative z-10 animate-in zoom-in spin-in-12 duration-700" />
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 gap-4 w-full max-w-lg p-4">
-                             {/* Contextual Visual hint based on question */}
-                             {currentQuestion === 0 && (
-                                 <div className="col-span-2 flex justify-center animate-in fade-in">
-                                     <div className="relative w-48 h-48 bg-black rounded-xl border-2 border-purple-500 p-2">
-                                          <svg className="w-full h-full" viewBox="0 0 1 1" style={{ transform: "scaleX(-1)" }}>
+                            {/* Contextual Visual hint based on question */}
+                            {currentQuestion === 0 && (
+                                <div className="col-span-2 flex justify-center animate-in fade-in">
+                                    <div className="relative w-48 h-48 bg-black rounded-xl border-2 border-purple-500 p-2">
+                                        <svg className="w-full h-full" viewBox="0 0 1 1" style={{ transform: "scaleX(-1)" }}>
                                             {gestureData.landmarks?.map((point, index) => (
                                                 <circle key={index} cx={point.x} cy={point.y} r="0.03" fill="#a855f7" />
                                             ))}
                                         </svg>
-                                        <div className="absolute top-2 right-2"><Brain className="w-6 h-6 text-purple-500"/></div>
-                                     </div>
-                                 </div>
-                             )}
-                             {currentQuestion === 1 && (
-                                 <div className="col-span-2 flex justify-center gap-8 animate-in fade-in">
-                                     <div className="text-6xl animate-bounce">🦖</div>
-                                     <div className="text-6xl">✊</div>
-                                 </div>
-                             )}
-                             {currentQuestion === 2 && (
-                                 <div className="col-span-2 flex justify-center animate-in fade-in">
-                                      <div className="relative w-40 h-40">
+                                        <div className="absolute top-2 right-2"><Brain className="w-6 h-6 text-purple-500" /></div>
+                                    </div>
+                                </div>
+                            )}
+                            {currentQuestion === 1 && (
+                                <div className="col-span-2 flex justify-center gap-8 animate-in fade-in">
+                                    <div className="text-6xl animate-bounce">🦖</div>
+                                    <div className="text-6xl">✊</div>
+                                </div>
+                            )}
+                            {currentQuestion === 2 && (
+                                <div className="col-span-2 flex justify-center animate-in fade-in">
+                                    <div className="relative w-40 h-40">
                                         <svg className="w-full h-full transform -rotate-90">
                                             <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-muted/20" />
                                             <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-green-500" strokeDasharray={440} strokeDashoffset={44} />
                                         </svg>
                                         <div className="absolute inset-0 flex items-center justify-center font-bold text-2xl">90%</div>
-                                      </div>
-                                 </div>
-                             )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -666,16 +736,16 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                 </div>
                 {/* Visual Content Wrapper to prevent overflow */}
                 <div className="w-full h-full flex items-center justify-center">
-                   {currentContent.visual}
+                    {currentContent.visual}
                 </div>
             </div>
 
             {/* Right Side: Content (1/3) */}
             <div className="w-full md:w-1/3 h-1/2 md:h-full bg-card p-6 md:p-8 flex flex-col shadow-2xl relative z-10">
                 {/* Close Button */}
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
+                <Button
+                    variant="ghost"
+                    size="icon"
                     className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-20"
                     onClick={onComplete}
                 >
@@ -690,7 +760,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                     {/* Progress Dots */}
                     <div className="flex gap-1.5 ml-auto mr-8">
                         {steps.map((_, i) => (
-                            <div 
+                            <div
                                 key={i}
                                 className={cn(
                                     "w-1.5 h-1.5 rounded-full transition-all duration-300",

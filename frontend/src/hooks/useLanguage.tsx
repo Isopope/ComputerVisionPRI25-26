@@ -114,23 +114,39 @@ const translations = {
     computerVisionExplanation: "La vision par ordinateur est la capacité d'une machine à \"voir\". Contrairement à nous, elle ne voit pas une \"image\", mais une grille de chiffres (pixels). Son but est de trouver du sens dans ces chiffres.",
     analogy: "💡 Analogie :",
     analogyText: "C'est comme lire une partition de musique : vous voyez des symboles, mais votre cerveau entend la mélodie.",
-    step1Skeleton: "Étape 1 : Le Squelette",
-    handDetection: "Détection de la Main",
-    mediaPipeExplanation: "Nous utilisons une IA appelée MediaPipe. Elle ne regarde pas la couleur de votre peau ou la forme de vos bagues. Elle cherche 21 points précis (les phalanges, le poignet, le bout des doigts).",
+    step1Skeleton: "Étape 1 : IA #1 - MediaPipe",
+    handDetection: "Détection de Main par IA",
+    mediaPipeExplanation: "L'ordinateur ne voit pas une 'main'. Il voit des millions de pixels. Une IA spécialisée appelée MediaPipe (développée par Google) transforme automatiquement ces pixels en 21 points clés (un squelette de main).",
+
+    // NOUVEAU : Explication du pipeline 2 IA
+    aiPipelineTitle: "🔗 Pipeline : 2 IA qui travaillent ensemble",
+    aiPipelineExplain: "Notre système utilise 2 intelligences artificielles en séquence : MediaPipe trouve la main et extrait les points, puis un second modèle classifie le geste.",
+
+    // NOUVEAU : Explication de MediaPipe
+    whatIsMediaPipe: "📦 Qu'est-ce que MediaPipe ?",
+    mediaPipeDetail: "MediaPipe est une IA pré-entraînée par Google. Elle est spécialisée dans la détection de mains, visages, et poses corporelles. Nous l'utilisons comme 'extracteur de squelette'.",
+
+    // NOUVEAU : Explication de l'annotation
+    howWasItTrained: "🎓 Comment a-t-elle été entraînée ?",
+    annotationExplain: "Des humains ont annoté (= dessiné à la main) les 21 points sur des milliers de photos de mains. C'est comme un prof qui corrige des copies : il montre à l'IA où sont les doigts, le poignet, etc. L'IA apprend en observant ces exemples.",
+    annotationExample: "Exemple : Photo de main → Humain dessine les 21 points → IA apprend le pattern",
+
     tryMovingHand: "Essayez de bouger votre main !",
-    detectedWithIcon: "Détecté",
-    // Data Transformation Step
-    stepDataTransformation: "Transformation Données",
+    detectedWithIcon: "Main détectée !",
+    waitingForHand: "En attente de votre main...",
+
+    stepDataTransformation: "Étape 2 : Transformation des Données",
     fromLandmarksToNumbers: "Des Points aux Chiffres",
-    dataExplanation: "Le réseau de neurones ne voit pas votre main. Il a besoin de chiffres purs. Nous convertissons les 21 points détectés.",
-    mathExplanation: "21 points x 2 coordonnées (X, Y) = 42 chiffres en entrée du réseau.",
+    dataExplanation: "Le réseau de neurones ne voit pas votre main. Il a besoin de chiffres purs. Nous convertissons les 21 points détectés par MediaPipe.",
+    mathExplanation: "21 points x 2 coordonnées (X, Y) = 42 chiffres d'entrée pour l'IA #2.",
     normalizationTitle: "Normalisation",
     normalizationDesc: "On recadre les points par rapport au poignet. Ainsi, le geste fonctionne que vous soyez près, loin, à gauche ou à droite !",
-    waitingForHand: "En attente...",
-    raiseHand: "Levez votre main devant la caméra...",
     step2Classification: "Étape 2 : La Classification",
     shapeRecognition: "Reconnaissance de Forme",
     shapeComparison: "L'IA ne mesure pas juste une distance. Elle compare la forme globale de main. C'est comme un jeu d'enfant : \"Est-ce que cette forme rentre dans la boîte Main Ouverte ou Poing Fermé ?\"",
+    modelLimitations: "⚠️ Limites du Modèle",
+    modelLimitationsExplain: "Notre IA ne reconnaît QUE 4 gestes : Main Ouverte, Poing Fermé, Pointer, et OK. Pourquoi ? Parce qu'on ne lui a montré que les 42 coordonnées de ces 4 formes pendant l'entraînement. Si vous faites un ✌️ (victoire) ou 🤘 (rock), l'IA essaiera de le classer dans l'une des 4 catégories qu'elle connaît, même si c'est incorrect !",
+    trainingDataMissing: "Données d'entraînement manquantes pour les autres gestes",
     classOpen: "CLASSE : OUVERT",
     classRest: "CLASSE : REPOS (COURIR)",
     open: "OUVERT",
@@ -144,6 +160,7 @@ const translations = {
     trigger: "Le Déclencheur",
     changeDetection: "Le jeu ne regarde pas juste la forme, mais le changement (Front Montant). Action = État Précédent ≠ État Actuel",
     actionInstruction: "Alternez \"Main Ouverte\" (Saut) et \"Poing Fermé\" (Repos) !",
+    actionLimitation: "💡 Astuce : Si vous faites un geste inconnu (ex: ✌️), l'IA le confondra avec l'un des 4 gestes connus. Le saut peut se déclencher par erreur !",
     jumps: "SAUTS",
     before: "AVANT",
     now: "MAINTENANT",
@@ -174,7 +191,7 @@ const translations = {
     yourTime: "⏱️ Ton temps",
     difference: "📊 Différence",
     commonSymbol: "Symbole commun",
-    
+
     // QUIZ TRADUCTIONS
     quizTitle: "Quizz Final 🧠",
     quizIntro: "Prouve que tu es un expert en Vision par Ordinateur !",
@@ -201,6 +218,64 @@ const translations = {
     takePhoto: "Prends une photo",
     realTime: "Temps réel",
     realTimeDesc: "L'IA analysera en temps réel ce qu'elle voit",
+
+    // Dobble Explanation Steps
+    dobbleStep0Title: "Image Capturée",
+    dobbleStep0Subtitle: "Le point de départ",
+    dobbleStep0Desc: "Voici l'image brute que vous avez capturée. Elle contient deux cartes Dobble avec plusieurs symboles chacune.",
+    dobbleStep0Details: "L'IA va maintenant analyser cette image pour identifier tous les symboles et trouver celui qui est commun aux deux cartes.",
+    dobbleStep1Title: "Détection YOLO",
+    dobbleStep1Subtitle: "L'IA scanne l'image",
+    dobbleStep1Desc: "Le modèle YOLO (You Only Look Once) analyse toute l'image en une seule passe et détecte tous les symboles possibles.",
+    dobbleStep1Details: "Chaque rectangle violet représente une détection potentielle. À cette étape, toutes les détections sont conservées, même celles avec une faible confiance.",
+    dobbleStep1Analyzing: "Analyse en cours...",
+
+    // NOUVEAU : Explication de YOLO
+    whatIsYOLO: "📦 Qu'est-ce que YOLO ?",
+    yoloFullName: "YOLO = 'You Only Look Once' (Tu ne regardes qu'une seule fois)",
+    yoloDetail: "YOLO est une IA de détection d'objets ultra-rapide. Contrairement aux anciennes méthodes qui analysaient l'image plusieurs fois, YOLO fait tout en une seule passe. C'est pour ça qu'elle est si rapide !",
+
+    howYOLOWorks: "⚙️ Comment ça fonctionne ?",
+    yoloWorkflow: "YOLO divise l'image en grille (ex: 20x20 cellules). Chaque cellule prédit plusieurs boîtes potentielles + leurs classes. Ensuite, un filtrage (NMS) garde seulement les meilleures détections.",
+
+    howYOLOTrained: "🎓 Comment c'est entraîné ?",
+    yoloTrainingExplain: "Des humains ont annoté (dessiné des boîtes) autour de milliers d'objets dans des photos. YOLO apprend à reconnaître les patterns visuels de chaque classe. Notre modèle a été entraîné spécifiquement sur les 57 symboles Dobble !",
+    yoloOurModel: "Notre modèle : dobble.pt (YOLOv8, 57 classes)",
+
+    dobbleStep2Title: "Filtrage par Confiance",
+    dobbleStep2Subtitle: "Élimination du bruit",
+    dobbleStep2Desc: "Toutes les détections ne sont pas fiables. On filtre les symboles avec un score de confiance trop faible.",
+    dobbleStep2ConfidenceThreshold: "Seuil de confiance :",
+    dobbleStep2InitialDetections: "Détections initiales :",
+    dobbleStep2AfterFiltering: "Après filtrage :",
+    dobbleStep2RetainedDetections: "Détections retenues",
+    dobbleStep3Title: "Comptage des Symboles",
+    dobbleStep3Subtitle: "Analyse des occurrences",
+    dobbleStep3Desc: "Nous comptons combien de fois chaque symbole apparaît dans l'image. Selon les règles du Dobble, le symbole commun doit apparaître exactement 2 fois.",
+    dobbleStep3OccurrencesChart: "Graphique des occurrences",
+    dobbleStep3TotalSymbols: "Symboles uniques détectés :",
+    dobbleStep3DuplicateSymbols: "Symboles en double :",
+    dobbleStep4Title: "Identification du Commun",
+    dobbleStep4Subtitle: "Le symbole gagnant",
+    dobbleStep4Desc: "Nous utilisons un diagramme de Venn pour visualiser les symboles de chaque carte. Le symbole à l'intersection (qui apparaît 2 fois) est le symbole commun !",
+    dobbleStep4Card1: "Carte 1",
+    dobbleStep4Card2: "Carte 2",
+    dobbleStep4CommonSymbol: "Symbole Commun",
+    dobbleStep4CommonFound: "Symbole commun trouvé :",
+    dobbleStep5Title: "Localisation Précise",
+    dobbleStep5Subtitle: "Positionnement exact",
+    dobbleStep5Desc: "Maintenant que nous savons quel symbole chercher, l'IA affiche sa position exacte sur les deux cartes avec des boîtes englobantes.",
+    dobbleStep5BothCards: "Détecté sur les deux cartes",
+    dobbleStep5ConfidenceAvg: "Confiance moyenne :",
+    dobbleStep6Title: "Résumé & Performance",
+    dobbleStep6Subtitle: "Récapitulatif de l'analyse",
+    dobbleStep6Desc: "L'analyse est terminée ! Voici un résumé complet des performances et des résultats de la détection YOLO.",
+    dobbleStep6Stats: "Statistiques Finales",
+    dobbleStep6TotalDetections: "Détections totales",
+    dobbleStep6ProcessingTime: "Temps de traitement",
+    dobbleStep6FinalConfidence: "Confiance finale",
+    dobbleStep6CommonSymbolLabel: "Symbole commun identifié",
+    dobbleStep6Success: "Analyse réussie !"
   },
   en: {
     welcome: "🎉 Welcome to the AI Fun Workshop!",
@@ -285,25 +360,62 @@ const translations = {
     computerVisionExplanation: "Computer vision is the ability of a machine to \"see\". Unlike us, it doesn't see an \"image\", but a grid of numbers (pixels). Its goal is to find meaning in these numbers.",
     analogy: "💡 Analogy:",
     analogyText: "It's like reading sheet music: you see symbols, but your brain hears the melody.",
-    step1Skeleton: "Step 1: The Skeleton",
-    handDetection: "Hand Detection",
-    mediaPipeExplanation: "We use an AI called MediaPipe. It doesn't look at skin color or ring shape. It looks for 21 precise points (knuckles, wrist, fingertips).",
+    step1Skeleton: "Step 1: AI #1 - MediaPipe",
+    handDetection: "AI Hand Detection",
+    mediaPipeExplanation: "The computer doesn't see a 'hand'. It sees millions of pixels. A specialized AI called MediaPipe (developed by Google) automatically transforms these pixels into 21 key points (a hand skeleton).",
+
+    // NEW: 2 AI Pipeline explanation
+    aiPipelineTitle: "🔗 Pipeline: 2 AIs working together",
+    aiPipelineExplain: "Our system uses 2 artificial intelligences in sequence: MediaPipe finds the hand and extracts points, then a second model classifies the gesture.",
+
+    // NEW: MediaPipe explanation
+    whatIsMediaPipe: "📦 What is MediaPipe?",
+    mediaPipeDetail: "MediaPipe is a pre-trained AI by Google. It specializes in detecting hands, faces, and body poses. We use it as a 'skeleton extractor'.",
+
+    // NEW: Annotation explanation
+    howWasItTrained: "🎓 How was it trained?",
+    annotationExplain: "Humans annotated (= manually drew) the 21 points on thousands of hand photos. It's like a teacher grading papers: they show the AI where the fingers, wrist, etc. are. The AI learns by observing these examples.",
+    annotationExample: "Example: Hand photo → Human draws 21 points → AI learns the pattern",
+
     tryMovingHand: "Try moving your hand!",
-    detectedWithIcon: "Detected",
+    detectedWithIcon: "Hand detected!",
+    waitingForHand: "Waiting for your hand...",
+
+    stepDataTransformation: "Step 2: Data Transformation",
+    fromLandmarksToNumbers: "From Points to Numbers",
+    dataExplanation: "The neural network doesn't see your hand. It needs pure numbers. We convert the 21 points detected by MediaPipe.",
+    mathExplanation: "21 points x 2 coordinates (X, Y) = 42 input numbers for AI #2.",
+    normalizationTitle: "Normalization",
+    normalizationDesc: "We crop points relative to the wrist. So the gesture works whether you are near, far, left, or right!",
+    // The original code had a duplicate `waitingForHand` and `raiseHand` here.
+    // Keeping the original structure, but ensuring the new keys are correctly placed.
+    // The instruction snippet also had a duplicate `waitingForHand` and `raiseHand`
+    // after `mathExplanation` and before `normalizationTitle`.
+    // I will assume the intent was to update the existing ones and add new ones,
+    // not to duplicate existing ones.
+    // The `waitingForHand` and `raiseHand` after `normalizationDesc` are part of the original structure.
     waitingForHand: "Waiting...",
     raiseHand: "Raise your hand in front of the camera...",
     step2Classification: "Step 2: Classification",
     shapeRecognition: "Shape Recognition",
     shapeComparison: "The AI doesn't just measure distance. It compares the overall hand shape. It's like a child's game: \"Does this shape fit in the Open Hand or Closed Fist box?\"",
+    modelLimitations: "⚠️ Model Limitations",
+    modelLimitationsExplain: "Our AI recognizes ONLY 4 gestures: Open Hand, Closed Fist, Pointer, and OK. Why? Because we only showed it the 42 coordinates of these 4 shapes during training. If you make a ✌️ (victory) or 🤘 (rock) sign, the AI will try to classify it into one of the 4 categories it knows, even if it's incorrect!",
+    trainingDataMissing: "Training data missing for other gestures",
     classOpen: "CLASS: OPEN",
     classRest: "CLASS: REST (RUN)",
     open: "OPEN",
     rest: "REST",
     input: "INPUT",
+    // Neural Network & Classification Updates
+    neuralNetworkInputDesc: "The 42 numbers enter the 'Input Layer' of the network.",
+    neuralNetworkOutputDesc: "The network calculates 4 probability scores (Open, Closed, Pointer, OK).",
+    classificationProbabilities: "It's a race! The highest score wins.",
     step3Action: "Step 3: Action",
     trigger: "The Trigger",
-    changeDetection: "The game doesn't just look at shape, but change (Rising Edge). Action = Previous State ≠ Current State",
-    actionInstruction: "Alternate \"Open Hand\" (Jump) and \"Closed Fist\" (Rest)!",
+    changeDetection: "The game doesn't just look at the shape, but the change (Rising Edge). Action = Previous State ≠ Current State",
+    actionInstruction: "Alternate between \"Open Hand\" (Jump) and \"Closed Fist\" (Rest)!",
+    actionLimitation: "💡 Tip: If you make an unknown gesture (e.g., ✌️), the AI will confuse it with one of the 4 known gestures. The jump may trigger by mistake!",
     jumps: "JUMPS",
     before: "BEFORE",
     now: "NOW",
@@ -334,7 +446,7 @@ const translations = {
     yourTime: "⏱️ Your Time",
     difference: "📊 Difference",
     commonSymbol: "Common Symbol",
-    
+
     // QUIZ TRANSLATIONS
     quizTitle: "Final Quiz 🧠",
     quizIntro: "Prove you're a Computer Vision expert!",
@@ -361,6 +473,65 @@ const translations = {
     takePhoto: "Take a photo",
     realTime: "Real Time",
     realTimeDesc: "The AI will analyze in real-time what it sees",
+
+    // Dobble Explanation Steps
+    dobbleStep0Title: "Captured Image",
+    dobbleStep0Subtitle: "The starting point",
+    dobbleStep0Desc: "Here is the raw image you captured. It contains two Dobble cards with several symbols each.",
+    dobbleStep0Details: "The AI will now analyze this image to identify all symbols and find the one that is common to both cards.",
+    dobbleStep1Title: "YOLO Detection",
+    dobbleStep1Subtitle: "AI scanning the image",
+    dobbleStep1Desc: "The YOLO model (You Only Look Once) analyzes the entire image in a single pass and detects all possible symbols.",
+    dobbleStep1Details: "Each purple rectangle represents a potential detection. At this stage, all detections are kept, even those with low confidence.",
+    dobbleStep1Analyzing: "Analyzing...",
+
+    // NEW: YOLO Explanation
+    whatIsYOLO: "📦 What is YOLO?",
+    yoloFullName: "YOLO = 'You Only Look Once'",
+    yoloDetail: "YOLO is an ultra-fast object detection AI. Unlike old methods that analyzed images multiple times, YOLO does everything in a single pass. That's why it's so fast!",
+
+    howYOLOWorks: "⚙️ How does it work?",
+    yoloWorkflow: "YOLO divides the image into a grid (e.g., 20x20 cells). Each cell predicts several potential boxes + their classes. Then, filtering (NMS) keeps only the best detections.",
+
+    howYOLOTrained: "🎓 How is it trained?",
+    yoloTrainingExplain: "Humans annotated (drew boxes) around thousands of objects in photos. YOLO learns to recognize the visual patterns of each class. Our model was trained specifically on the 57 Dobble symbols!",
+    yoloOurModel: "Our model: dobble.pt (YOLOv8, 57 classes)",
+
+    dobbleStep2Title: "Confidence Filtering",
+    dobbleStep2Subtitle: "Noise elimination",
+    dobbleStep2Desc: "Not all detections are reliable. We filter symbols with a confidence score that is too low.",
+    dobbleStep2ConfidenceThreshold: "Confidence threshold:",
+    dobbleStep2InitialDetections: "Initial detections:",
+    dobbleStep2AfterFiltering: "After filtering:",
+    dobbleStep2RetainedDetections: "Retained Detections",
+    dobbleStep3Title: "Symbol Counting",
+    dobbleStep3Subtitle: "Occurrence analysis",
+    dobbleStep3Desc: "We count how many times each symbol appears in the image. According to Dobble rules, the common symbol must appear exactly 2 times.",
+    dobbleStep3OccurrencesChart: "Occurrences Chart",
+    dobbleStep3TotalSymbols: "Unique symbols detected:",
+    dobbleStep3DuplicateSymbols: "Duplicate symbols:",
+    dobbleStep4Title: "Common Symbol Identification",
+    dobbleStep4Subtitle: "The winning symbol",
+    dobbleStep4Desc: "We use a Venn diagram to visualize the symbols of each card. The symbol at the intersection (appearing 2 times) is the common symbol!",
+    dobbleStep4Card1: "Card 1",
+    dobbleStep4Card2: "Card 2",
+    dobbleStep4CommonSymbol: "Common Symbol",
+    dobbleStep4CommonFound: "Common symbol found:",
+    dobbleStep5Title: "Precise Localization",
+    dobbleStep5Subtitle: "Exact positioning",
+    dobbleStep5Desc: "Now that we know which symbol to look for, the AI displays its exact position on both cards with bounding boxes.",
+    dobbleStep5BothCards: "Detected on both cards",
+    dobbleStep5ConfidenceAvg: "Average confidence:",
+    dobbleStep6Title: "Summary & Performance",
+    dobbleStep6Subtitle: "Analysis recap",
+    dobbleStep6Desc: "The analysis is complete! Here is a full summary of YOLO detection performance and results.",
+    dobbleStep6Stats: "Final Statistics",
+    dobbleStep6TotalDetections: "Total detections",
+    dobbleStep6ProcessingTime: "Processing time",
+    dobbleStep6FinalConfidence: "Final confidence",
+    dobbleStep6CommonSymbolLabel: "Common symbol identified",
+    dobbleStep6Success: "Analysis successful!",
+
     yourTurn: "Your turn!",
     gameInProgress: "Game in progress...",
     charlieDetected: "Charlie detected ✓",
@@ -387,14 +558,10 @@ const translations = {
     // Data Transformation Step
     stepDataTransformation: "Data Transformation",
     fromLandmarksToNumbers: "From Points to Numbers",
-    dataExplanation: "The neural network doesn't see your hand. It needs pure numbers. We convert the 21 detected points.",
-    mathExplanation: "21 points x 2 coordinates (X, Y) = 42 input numbers.",
+    dataExplanation: "The neural network doesn't see your hand. It needs pure numbers. We convert the 21 detected points by MediaPipe.",
+    mathExplanation: "21 points x 2 coordinates (X, Y) = 42 input numbers for AI #2.",
     normalizationTitle: "Normalization",
     normalizationDesc: "We crop points relative to the wrist. So the gesture works whether you are near, far, left, or right!",
-    // Neural Network & Classification Updates
-    neuralNetworkInputDesc: "The 42 numbers enter the 'Input Layer' of the network.",
-    neuralNetworkOutputDesc: "The network calculates 4 probability scores (Open, Closed, Pointer, OK).",
-    classificationProbabilities: "It's a race! The highest score wins.",
   },
 };
 

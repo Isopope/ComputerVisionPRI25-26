@@ -3,8 +3,8 @@ import { Home, RotateCcw, ArrowRight, HelpCircle, ArrowLeft } from "lucide-react
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { BoundingBoxOverlay } from "@/components/BoundingBoxOverlay";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useRef } from "react";
 
 interface AIPureModeProps {
   gameFromUrl: string | null;
@@ -23,6 +23,7 @@ export const AIPureMode = ({
 }: AIPureModeProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const imageRef = useRef<HTMLImageElement>(null);
 
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
@@ -69,6 +70,7 @@ export const AIPureMode = ({
               {/* Image capturée ou uploadée */}
               {capturedImageFromState ? (
                 <img
+                  ref={imageRef}
                   src={capturedImageFromState}
                   alt="Captured"
                   className="w-full h-full object-contain"
@@ -80,11 +82,26 @@ export const AIPureMode = ({
               )}
 
               {/* Overlay IA - Bounding boxes de YOLO */}
-              {!yoloMutation.isPending && yoloMutation.data && capturedImageFromState && (
-                <BoundingBoxOverlay
-                  image={capturedImageFromState}
-                  boundingBoxes={yoloMutation.data.result.bounding_boxes}
-                />
+              {!yoloMutation.isPending && yoloMutation.data && capturedImageFromState && imageRef.current && (
+                <>
+                  {yoloMutation.data.result.bounding_boxes.map((box: any, index: number) => (
+                    <div
+                      key={index}
+                      className="absolute border-4 border-primary rounded-lg bg-primary/20"
+                      style={{
+                        left: `${box.x}%`,
+                        top: `${box.y}%`,
+                        width: `${box.width}%`,
+                        height: `${box.height}%`,
+                      }}
+                    >
+                      {/* Label avec confiance */}
+                      <div className="absolute -top-8 left-0 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                        {box.label} {Math.round(box.confidence * 100)}%
+                      </div>
+                    </div>
+                  ))}
+                </>
               )}
 
               {/* Heatmap overlay */}
@@ -189,7 +206,7 @@ export const AIPureMode = ({
                   navigate(`/explanation?game=${gameFromUrl}&mode=${modeFromUrl}`, {
                     state: {
                       yoloResult: yoloMutation.data.result,
-                      image: capturedImageFromState
+                      capturedImage: capturedImageFromState
                     }
                   });
                 }

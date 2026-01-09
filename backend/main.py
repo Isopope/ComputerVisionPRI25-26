@@ -317,10 +317,14 @@ async def analyze_dobble(request: AnalyzeDobbleRequest):
                 conf = float(det.conf.item())
                 
                 if conf >= request.confidence_threshold:
+                    bbox_pixels = [int(xmin), int(ymin), int(xmax), int(ymax)]
+                    bbox_percent = convert_to_percentage(bbox_pixels, image_width, image_height)
+                    
                     detection_data.append({
                         'classe': model.names[classidx],
                         'confiance': conf,
-                        'bbox': [int(xmin), int(ymin), int(xmax), int(ymax)],
+                        'bbox': bbox_pixels,
+                        'bbox_percent': bbox_percent,  # Ajout pour le frontend
                         'index': i
                     })
         

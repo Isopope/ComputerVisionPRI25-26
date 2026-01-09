@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useNavigateWithLang } from "@/hooks/useNavigateWithLang";
-import { Home, Camera, Video, ArrowLeft } from "lucide-react";
+import { Home, Camera, Video, ArrowLeft, Loader2 } from "lucide-react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
+import { analyzeDobble } from "@/lib/api";
+import { useMutation } from "@tanstack/react-query";
 
 type SubMode = "capture" | "realtime" | null;
 
@@ -17,11 +19,17 @@ const PreGame = () => {
 
   const gameFromUrl = searchParams.get("game");
   const modeFromUrl = searchParams.get("mode");
-  const [selectedSubMode, setSelectedSubMode] = useState<SubMode>(null);
+  const [selectedSubMode, setSelectedSubMode] = useState<SubMode>(modeFromUrl === "explanatory" ? "capture" : null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Mutation YOLO pour le mode explicatif
+  const yoloMutation = useMutation({
+    mutationFn: ({ image, game }: { image: string; game: string }) =>
+      analyzeDobble(image),
+  });
 
   useEffect(() => {
     if (!gameFromUrl || !modeFromUrl) {
@@ -89,9 +97,35 @@ const PreGame = () => {
 
   const handleLaunch = () => {
     if (selectedSubMode === "capture" && capturedImage) {
-      navigate(`/game?game=${gameFromUrl}&mode=${modeFromUrl}&submode=${selectedSubMode}`, {
-        state: { capturedImage }
-      });
+      // Mode explicatif : analyser et aller directement à l'explication
+      if (modeFromUrl === "explanatory") {
+        yoloMutation.mutate(
+          { image: capturedImage, game: gameFromUrl || "dobble" },
+          {
+            onSuccess: (data) => {
+              navigate(`/explanation?game=${gameFromUrl}&mode=${modeFromUrl}`, {
+                state: {
+                  yoloResult: data.result,
+                  capturedImage: capturedImage
+                }
+              });
+            },
+            onError: (error) => {
+              console.error("Erreur analyse YOLO:", error);
+              toast({
+                title: "Erreur d'analyse",
+                description: "Impossible d'analyser l'image. Veuillez réessayer.",
+                variant: "destructive",
+              });
+            }
+          }
+        );
+      } else {
+        // Autres modes : workflow normal
+        navigate(`/game?game=${gameFromUrl}&mode=${modeFromUrl}&submode=${selectedSubMode}`, {
+          state: { capturedImage }
+        });
+      }
     } else if (selectedSubMode === "realtime") {
       navigate(`/game?game=${gameFromUrl}&mode=${modeFromUrl}&submode=${selectedSubMode}`);
     }
@@ -141,11 +175,12 @@ const PreGame = () => {
         </div>
 
         {/* Sub-mode Selection */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4 text-foreground">
-            🧠 Choix du sous-mode
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {modeFromUrl !== "explanatory" && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">
+              🧠 Choix du sous-mode
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div
               onClick={() => setSelectedSubMode("capture")}
               className={`game-card game-card-hover cursor-pointer p-6 flex flex-col items-center gap-4 ${selectedSubMode === "capture" ? "ring-4 ring-primary pulse-ring" : ""
@@ -180,7 +215,8 @@ const PreGame = () => {
               </p>
             </div>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Camera Preview / Instructions */}
         {selectedSubMode === "capture" ? (
@@ -259,11 +295,19 @@ const PreGame = () => {
           onClick={handleLaunch}
           disabled={
             !selectedSubMode ||
-            (selectedSubMode === "capture" && !capturedImage)
+            (selectedSubMode === "capture" && !capturedImage) ||
+            yoloMutation.isPending
           }
-          className="w-full"
+          className="w-full gap-2"
         >
-          {t("launchAnalysis")}
+          {yoloMutation.isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {modeFromUrl === "explanatory" ? "Analyse en cours..." : t("launchAnalysis")}
+            </>
+          ) : (
+            t("launchAnalysis")
+          )}
         </Button>
       </div>
     </div>

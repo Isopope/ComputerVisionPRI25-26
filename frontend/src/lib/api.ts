@@ -71,3 +71,11 @@ class ApiService {
 
 // Export d'une instance unique
 export const apiService = new ApiService();
+
+// Export de fonctions wrapper pour une utilisation simplifiée
+export const analyzeDobble = (imageBase64: string) => 
+  apiService.analyzeDobble({ image: imageBase64 });
+
+export const checkHealth = () => apiService.checkHealth();
+
+export const isBackendAvailable = () => apiService.isBackendAvailable();
