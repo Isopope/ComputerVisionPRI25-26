@@ -283,9 +283,7 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                             </div>
                         </div>
                     </div>
-                    <div className="text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full animate-pulse border">
-                        ⬇️ {t("nextStep")}
-                    </div>
+                    
                 </div>
             )
         },
