@@ -315,15 +315,16 @@ export const DobbleExplanationSteps = ({
               return (
                 <div
                   key={index}
-                  className="absolute border-3 border-green-500 rounded-lg bg-green-500/10 transition-all duration-300"
+                  className="absolute border-4 border-green-500 rounded-lg bg-green-500/20 transition-all duration-300 shadow-lg"
                   style={{
                     left: `${bbox.x}%`,
                     top: `${bbox.y}%`,
                     width: `${bbox.width}%`,
                     height: `${bbox.height}%`,
+                    boxShadow: "0 0 15px rgba(34, 197, 94, 0.5)"
                   }}
                 >
-                  <div className="absolute -top-6 left-0 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                  <div className="absolute -top-7 left-0 bg-green-500 text-white px-3 py-1 rounded font-bold whitespace-nowrap text-sm shadow-lg">
                     {det.classe} {(det.confiance * 100).toFixed(0)}%
                   </div>
                 </div>
