@@ -93,93 +93,93 @@ const DinoGame = () => {
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
 
-      {/* Tutorial Overlay */}
-      {showTutorial && (
+      {/* Mode Tutorial: composant isolé en plein écran */}
+      {showTutorial ? (
         <EducationalTutorial
           isOpen={showTutorial}
           onComplete={onTutorialComplete}
-          gestureData={lastGestureData}
         />
+      ) : (
+        /* Mode Jeu normal */
+        <div className="relative z-10 w-full max-w-7xl mx-auto space-y-6">
+          {/* Navigation */}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/mode?game=dino`)}
+                className="gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {t("back")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="gap-2"
+              >
+                <Home className="w-4 h-4" />
+                {t("home") || "Accueil"}
+              </Button>
+            </div>
+
+            <h1 className="text-3xl font-bold text-foreground">
+              🦕 {t("dinoRun") || "Dino Run"}
+            </h1>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTutorial(true)}
+                className="gap-2"
+              >
+                {t("explanatoryMode")} (?)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReplay}
+                className="gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                {t("replay") || "Rejouer"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Game Layout */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Main Game Area */}
+            <div className="flex-1">
+              <DinoGameCanvas
+                onJump={() => console.log("Jump triggered")}
+                onGameOver={handleGameOver}
+                onScoreUpdate={(newScore) => setScore(newScore)}
+                paused={false}
+              />
+            </div>
+
+            {/* Sidebar - Détection de gestes + Score */}
+            <div className="w-full lg:w-80 space-y-6">
+              {mode === "explanatory" ? (
+                <ExplanatoryGestureDetector
+                  onGestureDetected={handleGestureDetected}
+                />
+              ) : (
+                <GestureDetector
+                  onGestureDetected={handleGestureDetected}
+                  showLandmarks={false}
+                  showDebugInfo={false}
+                />
+              )}
+              <ScorePanel score={score} />
+            </div>
+          </div>
+        </div>
       )}
-
-      <div className="relative z-10 w-full max-w-7xl mx-auto space-y-6">
-        {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/mode?game=dino`)}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t("back")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/")}
-              className="gap-2"
-            >
-              <Home className="w-4 h-4" />
-              {t("home") || "Accueil"}
-            </Button>
-          </div>
-
-          <h1 className="text-3xl font-bold text-foreground">
-            🦕 {t("dinoRun") || "Dino Run"}
-          </h1>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTutorial(true)}
-              className="gap-2"
-            >
-              {t("explanatoryMode")} (?)
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReplay}
-              className="gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              {t("replay") || "Rejouer"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Game Layout */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main Game Area */}
-          <div className="flex-1">
-            <DinoGameCanvas
-              onJump={() => console.log("Jump triggered")}
-              onGameOver={handleGameOver}
-              onScoreUpdate={(newScore) => setScore(newScore)}
-              paused={showTutorial} // Mettre le jeu en pause si tutoriel
-            />
-          </div>
-
-          {/* Sidebar - Détection de gestes + Score */}
-          <div className="w-full lg:w-80 space-y-6">
-            {mode === "explanatory" ? (
-              <ExplanatoryGestureDetector
-                onGestureDetected={handleGestureDetected}
-              />
-            ) : (
-              <GestureDetector
-                onGestureDetected={handleGestureDetected}
-                showLandmarks={false}
-                showDebugInfo={false}
-              />
-            )}
-            <ScorePanel score={score} />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

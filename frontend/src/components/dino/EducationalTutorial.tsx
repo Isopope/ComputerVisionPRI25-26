@@ -1,29 +1,97 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Camera, Brain, Activity, Play, Eye, CheckCircle2, X, FileCode, Database, Trophy, Star, CheckCircle, XCircle, HelpCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Brain, Activity, Play, Eye, CheckCircle2, X, FileCode, Database, Trophy, Star, CheckCircle, XCircle, HelpCircle, Video, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCamera } from "@/hooks/useCamera";
+import { Switch } from "@/components/ui/switch";
+
+interface Landmark {
+    x: number;
+    y: number;
+    z: number;
+}
 
 interface GestureData {
     gesture: string;
     raw_gesture?: string;
     confidence: number;
     probabilities?: number[];
-    landmarks?: { x: number; y: number; z: number }[];
+    landmarks?: Landmark[];
 }
 
 interface EducationalTutorialProps {
     isOpen: boolean;
     onComplete: () => void;
-    gestureData: GestureData;
 }
 
-export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: EducationalTutorialProps) => {
+// Connexions entre les points (skeleton)
+const HAND_CONNECTIONS = [
+    [0, 1], [1, 2], [2, 3], [3, 4],
+    [0, 5], [5, 6], [6, 7], [7, 8],
+    [0, 9], [9, 10], [10, 11], [11, 12],
+    [0, 13], [13, 14], [14, 15], [15, 16],
+    [0, 17], [17, 18], [18, 19], [19, 20],
+    [5, 9], [9, 13], [13, 17]
+];
+
+const WS_URL = "ws://localhost:8000/ws/gesture";
+
+// Composant pour cloner un flux vidéo MediaStream
+const VideoClone = ({ srcObject }: { srcObject: MediaStream }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    
+    useEffect(() => {
+        if (videoRef.current && srcObject) {
+            videoRef.current.srcObject = srcObject;
+        }
+    }, [srcObject]);
+    
+    return (
+        <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-contain bg-black"
+            style={{ transform: "scaleX(-1)" }}
+        />
+    );
+};
+
+export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialProps) => {
     const { t } = useLanguage();
     const [step, setStep] = useState(0);
     const STEPS_COUNT = 8;
+    
+    // ===== SYSTÈME DE DÉTECTION DE GESTES INTÉGRÉ =====
+    const { videoRef, isReady: isCameraReady, startCamera, stopCamera } = useCamera();
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+    const wsRef = useRef<WebSocket | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
+    
+    // State pour les données de geste (interne au composant)
+    const [gestureData, setGestureData] = useState<GestureData>({
+        gesture: "neutral",
+        raw_gesture: "neutral",
+        confidence: 0,
+        landmarks: [],
+        probabilities: []
+    });
+    const [wsConnected, setWsConnected] = useState(false);
+    const [realFps, setRealFps] = useState(0);
+    
+    // Toggle vue squelette/caméra pour step 1
+    const [showCameraView, setShowCameraView] = useState(false);
+    
+    // Refs pour le lissage temporel
+    const gestureHistoryRef = useRef<string[]>([]);
+    const frameCountRef = useRef(0);
+    const lastFpsUpdateRef = useRef(0);
+    
     // Quiz State
     const [quizStarted, setQuizStarted] = useState(false);
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -39,9 +107,269 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
     const [jumpTrigger, setJumpTrigger] = useState(false);
     const [jumpCount, setJumpCount] = useState(0);
 
+    // Fonction pour dessiner les landmarks sur le canvas overlay
+    const drawLandmarks = useCallback((ctx: CanvasRenderingContext2D, landmarks: Landmark[], width: number, height: number) => {
+        ctx.clearRect(0, 0, width, height);
+        if (!landmarks || landmarks.length === 0) return;
+
+        // Dessiner les connexions
+        ctx.lineWidth = 6;
+        for (const [start, end] of HAND_CONNECTIONS) {
+            if (landmarks[start] && landmarks[end]) {
+                const x1 = landmarks[start].x * width;
+                const y1 = landmarks[start].y * height;
+                const x2 = landmarks[end].x * width;
+                const y2 = landmarks[end].y * height;
+
+                ctx.strokeStyle = "rgb(0, 0, 0)";
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+
+                ctx.strokeStyle = "rgb(255, 255, 255)";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                ctx.lineWidth = 6;
+            }
+        }
+
+        // Dessiner les points
+        landmarks.forEach((landmark, index) => {
+            const x = landmark.x * width;
+            const y = landmark.y * height;
+            const mainPoints = [0, 1, 2, 5, 9, 13, 17];
+            const fingerTips = [4, 8, 12, 16, 20];
+
+            if (mainPoints.includes(index)) {
+                ctx.fillStyle = "rgb(255, 255, 255)";
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "rgb(0, 0, 0)";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            } else if (fingerTips.includes(index)) {
+                ctx.fillStyle = "rgb(255, 255, 255)";
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "rgb(0, 0, 0)";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        });
+    }, []);
+
+    // Traitement de la réponse WebSocket
+    const processGestureResponse = useCallback((data: any) => {
+        // Lissage temporel
+        gestureHistoryRef.current.push(data.gesture);
+        if (gestureHistoryRef.current.length > 10) {
+            gestureHistoryRef.current.shift();
+        }
+
+        const gestureCount: { [key: string]: number } = {};
+        gestureHistoryRef.current.forEach(g => {
+            gestureCount[g] = (gestureCount[g] || 0) + 1;
+        });
+
+        let mostFrequentGesture = data.gesture;
+        let maxCount = 0;
+        for (const [gesture, count] of Object.entries(gestureCount)) {
+            if (count > maxCount) {
+                maxCount = count;
+                mostFrequentGesture = gesture;
+            }
+        }
+
+        // Debug: log les landmarks pour vérifier les coordonnées
+        if (data.landmarks && data.landmarks.length > 0) {
+            console.log("Landmarks[0]:", data.landmarks[0]);
+        }
+
+        setGestureData({
+            gesture: mostFrequentGesture,
+            raw_gesture: data.raw_gesture || data.gesture,
+            confidence: data.confidence,
+            landmarks: data.landmarks || [],
+            probabilities: data.probabilities || []
+        });
+    }, []);
+
+    // Dessiner les landmarks quand en mode caméra
+    useEffect(() => {
+        if (!showCameraView || step !== 1 || !overlayCanvasRef.current || !videoRef.current) return;
+        if (!gestureData.landmarks || gestureData.landmarks.length === 0) return;
+
+        const canvas = overlayCanvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        // Utiliser les dimensions d'affichage du canvas (CSS)
+        const rect = canvas.getBoundingClientRect();
+        const displayWidth = rect.width;
+        const displayHeight = rect.height;
+        
+        // Dimensions natives de la vidéo
+        const videoWidth = videoRef.current.videoWidth || 640;
+        const videoHeight = videoRef.current.videoHeight || 480;
+        
+        // Calculer le ratio pour object-contain
+        const videoRatio = videoWidth / videoHeight;
+        const containerRatio = displayWidth / displayHeight;
+        
+        let drawWidth, drawHeight, offsetX, offsetY;
+        
+        if (videoRatio > containerRatio) {
+            // Vidéo plus large - barres en haut/bas
+            drawWidth = displayWidth;
+            drawHeight = displayWidth / videoRatio;
+            offsetX = 0;
+            offsetY = (displayHeight - drawHeight) / 2;
+        } else {
+            // Vidéo plus haute - barres à gauche/droite
+            drawHeight = displayHeight;
+            drawWidth = displayHeight * videoRatio;
+            offsetX = (displayWidth - drawWidth) / 2;
+            offsetY = 0;
+        }
+        
+        // Ajuster les dimensions du canvas pour correspondre à l'affichage CSS
+        if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+        }
+        
+        // Clear le canvas
+        ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+        // Dessiner les landmarks avec l'offset correct
+        const landmarks = gestureData.landmarks;
+        
+        // Dessiner les connexions
+        ctx.strokeStyle = "rgb(168, 85, 247)";
+        ctx.lineWidth = 3;
+        for (const [start, end] of HAND_CONNECTIONS) {
+            if (landmarks[start] && landmarks[end]) {
+                const x1 = offsetX + landmarks[start].x * drawWidth;
+                const y1 = offsetY + landmarks[start].y * drawHeight;
+                const x2 = offsetX + landmarks[end].x * drawWidth;
+                const y2 = offsetY + landmarks[end].y * drawHeight;
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+        }
+        
+        // Dessiner les points
+        landmarks.forEach((landmark, index) => {
+            const x = offsetX + landmark.x * drawWidth;
+            const y = offsetY + landmark.y * drawHeight;
+            const fingerTips = [4, 8, 12, 16, 20];
+            
+            ctx.fillStyle = fingerTips.includes(index) ? "rgb(34, 197, 94)" : "rgb(255, 255, 255)";
+            ctx.beginPath();
+            ctx.arc(x, y, fingerTips.includes(index) ? 8 : 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "rgb(0, 0, 0)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        });
+    }, [gestureData.landmarks, showCameraView, step, videoRef]);
+
+    // Démarrer la caméra et WebSocket (avec délai pour éviter conflit avec l'ancienne caméra)
+    useEffect(() => {
+        if (!isOpen) return;
+        
+        // Délai pour laisser le temps à l'ancienne caméra de se libérer
+        const timer = setTimeout(() => {
+            startCamera();
+        }, 300);
+        
+        return () => {
+            clearTimeout(timer);
+            stopCamera();
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, [isOpen]);
+
+    // WebSocket et streaming
+    useEffect(() => {
+        if (!isOpen || !isCameraReady || !videoRef.current || !canvasRef.current) return;
+
+        const ws = new WebSocket(WS_URL);
+        wsRef.current = ws;
+
+        ws.onopen = () => setWsConnected(true);
+        ws.onclose = () => setWsConnected(false);
+        ws.onerror = () => setWsConnected(false);
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (!data.error) {
+                    processGestureResponse(data);
+                }
+            } catch (err) {
+                console.error("Parse error:", err);
+            }
+        };
+
+        // Boucle d'envoi des frames
+        const sendFrame = (timestamp: number) => {
+            if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !videoRef.current || !canvasRef.current) {
+                animationFrameRef.current = requestAnimationFrame(sendFrame);
+                return;
+            }
+
+            frameCountRef.current++;
+            if (timestamp - lastFpsUpdateRef.current >= 1000) {
+                setRealFps(frameCountRef.current);
+                frameCountRef.current = 0;
+                lastFpsUpdateRef.current = timestamp;
+            }
+
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+                animationFrameRef.current = requestAnimationFrame(sendFrame);
+                return;
+            }
+
+            canvas.width = 320;
+            canvas.height = 180;
+            ctx.drawImage(videoRef.current, 0, 0, 320, 180);
+
+            const imageData = canvas.toDataURL("image/jpeg", 0.5);
+            try {
+                wsRef.current.send(JSON.stringify({ image: imageData }));
+            } catch (err) { }
+
+            animationFrameRef.current = requestAnimationFrame(sendFrame);
+        };
+
+        animationFrameRef.current = requestAnimationFrame(sendFrame);
+
+        return () => {
+            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+            if (ws) ws.close();
+        };
+    }, [isOpen, isCameraReady, processGestureResponse, videoRef]);
+
     // Détecter le saut (changement de geste) pour l'étape 5
     useEffect(() => {
-        if (step !== 5) return; // Index 5 = Action
+        if (step !== 5) return;
 
         const current = gestureData.raw_gesture;
         if (!current || current === "neutral") return;
@@ -209,29 +537,83 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
                 </div>
             ),
             visual: (
-                <div className="relative w-full h-full bg-black/5 rounded-3xl border-2 border-dashed border-purple-200 flex items-center justify-center overflow-hidden p-8">
-                    {gestureData.landmarks && gestureData.landmarks.length > 0 ? (
-                        <div className="relative w-full h-full max-w-md aspect-square bg-white dark:bg-black rounded-xl shadow-2xl p-4 transform transition-all duration-75">
-                            <svg className="w-full h-full" viewBox="0 0 1 1" style={{ transform: "scaleX(-1)" }}>
-                                {gestureData.landmarks.map((point, index) => (
-                                    <circle
-                                        key={index}
-                                        cx={point.x}
-                                        cy={point.y}
-                                        r="0.02"
-                                        fill={index % 4 === 0 ? "#a855f7" : "#cbd5e1"}
-                                    />
-                                ))}
-                            </svg>
-                            <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4" /> {t("detectedWithIcon")}
+                <div className="relative w-full h-full bg-black/5 rounded-3xl border-2 border-dashed border-purple-200 flex flex-col items-center justify-center overflow-hidden p-8 gap-4">
+                    {/* Toggle Squelette / Caméra */}
+                    <div className="absolute top-4 right-4 z-10 flex items-center gap-3 bg-card/90 backdrop-blur-sm px-4 py-2 rounded-full border shadow-lg">
+                        <Layers className={cn("w-5 h-5 transition-colors", !showCameraView ? "text-purple-500" : "text-muted-foreground")} />
+                        <Switch
+                            checked={showCameraView}
+                            onCheckedChange={setShowCameraView}
+                            className="data-[state=checked]:bg-purple-500"
+                        />
+                        <Video className={cn("w-5 h-5 transition-colors", showCameraView ? "text-purple-500" : "text-muted-foreground")} />
+                    </div>
+
+                    {/* Status bar */}
+                    <div className="absolute top-4 left-4 flex gap-2">
+                        <div className={cn("px-3 py-1 rounded-full text-xs font-bold", isCameraReady ? "bg-green-500 text-white" : "bg-yellow-500 text-white")}>
+                            {isCameraReady ? "Caméra OK" : "Caméra..."}
+                        </div>
+                        <div className={cn("px-3 py-1 rounded-full text-xs font-bold", wsConnected ? "bg-green-500 text-white" : "bg-red-500 text-white")}>
+                            {wsConnected ? "WS Connecté" : "WS Déconnecté"}
+                        </div>
+                        <div className="bg-black/50 text-white px-3 py-1 rounded-full text-xs font-bold">
+                            {realFps} FPS
+                        </div>
+                    </div>
+
+                    {/* Vue conditionnelle */}
+                    {showCameraView ? (
+                        /* VUE CAMÉRA avec landmarks superposés */
+                        <div className="relative w-full h-full max-w-lg rounded-xl overflow-hidden shadow-2xl border-2 border-purple-300 bg-black flex items-center justify-center">
+                            {/* Clone du flux vidéo pour affichage */}
+                            {isCameraReady && videoRef.current && videoRef.current.srcObject && (
+                                <VideoClone srcObject={videoRef.current.srcObject as MediaStream} />
+                            )}
+                            {!isCameraReady && (
+                                <div className="w-full h-full flex items-center justify-center bg-black/50 text-white">
+                                    <span className="animate-pulse">Chargement caméra...</span>
+                                </div>
+                            )}
+                            <canvas
+                                ref={overlayCanvasRef}
+                                className="absolute inset-0 w-full h-full pointer-events-none object-contain"
+                                style={{ transform: "scaleX(-1)" }}
+                            />
+                            {gestureData.landmarks && gestureData.landmarks.length > 0 && (
+                                <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4" /> {t("detectedWithIcon")}
+                                </div>
+                            )}
+                            <div className="absolute bottom-4 left-4 bg-purple-500/80 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+                                <Video className="w-3 h-3" /> {t("cameraView")} + Landmarks
                             </div>
                         </div>
                     ) : (
-                        <div className="text-center space-y-4">
-                            <div className="text-6xl animate-bounce">👋</div>
-                            <p className="text-xl font-medium text-muted-foreground">{t("raiseHand")}</p>
-                        </div>
+                        /* VUE SQUELETTE PUR - style original */
+                        gestureData.landmarks && gestureData.landmarks.length > 0 ? (
+                            <div className="relative w-full h-full max-w-md aspect-square bg-white dark:bg-black rounded-xl shadow-2xl p-4 transform transition-all duration-75">
+                                <svg className="w-full h-full" viewBox="0 0 1 1" style={{ transform: "scaleX(-1)" }}>
+                                    {gestureData.landmarks.map((point, index) => (
+                                        <circle
+                                            key={index}
+                                            cx={point.x}
+                                            cy={point.y}
+                                            r="0.02"
+                                            fill={index % 4 === 0 ? "#a855f7" : "#cbd5e1"}
+                                        />
+                                    ))}
+                                </svg>
+                                <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4" /> {t("detectedWithIcon")}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center space-y-4">
+                                <div className="text-6xl animate-bounce">👋</div>
+                                <p className="text-xl font-medium text-muted-foreground">{t("raiseHand")}</p>
+                            </div>
+                        )
                     )}
                 </div>
             )
@@ -726,6 +1108,17 @@ export const EducationalTutorial = ({ isOpen, onComplete, gestureData }: Educati
 
     return (
         <div className="fixed inset-0 z-50 bg-background flex flex-col md:flex-row animate-in fade-in duration-300 h-screen w-screen overflow-hidden">
+            {/* Vidéo source cachée - TOUJOURS MONTÉE pour useCamera */}
+            <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="hidden"
+            />
+            {/* Canvas caché pour l'envoi des frames au WebSocket */}
+            <canvas ref={canvasRef} className="hidden" />
+            
             {/* Left Side: Visualization (2/3) */}
             <div className="w-full md:w-2/3 h-1/2 md:h-full bg-muted/30 p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-border relative overflow-hidden">
                 <div className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground/50 font-mono text-sm">

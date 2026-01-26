@@ -134,6 +134,8 @@ const translations = {
     tryMovingHand: "Essayez de bouger votre main !",
     detectedWithIcon: "Main détectée !",
     waitingForHand: "En attente de votre main...",
+    cameraView: "Vue Caméra",
+    skeletonView: "Vue Squelette",
 
     stepDataTransformation: "Étape 2 : Transformation des Données",
     fromLandmarksToNumbers: "Des Points aux Chiffres",
@@ -380,6 +382,8 @@ const translations = {
     tryMovingHand: "Try moving your hand!",
     detectedWithIcon: "Hand detected!",
     waitingForHand: "Waiting for your hand...",
+    cameraView: "Camera View",
+    skeletonView: "Skeleton View",
 
     stepDataTransformation: "Step 2: Data Transformation",
     fromLandmarksToNumbers: "From Points to Numbers",
@@ -388,14 +392,6 @@ const translations = {
     normalizationTitle: "Normalization",
     normalizationDesc: "We crop points relative to the wrist. So the gesture works whether you are near, far, left, or right!",
     // The original code had a duplicate `waitingForHand` and `raiseHand` here.
-    // Keeping the original structure, but ensuring the new keys are correctly placed.
-    // The instruction snippet also had a duplicate `waitingForHand` and `raiseHand`
-    // after `mathExplanation` and before `normalizationTitle`.
-    // I will assume the intent was to update the existing ones and add new ones,
-    // not to duplicate existing ones.
-    // The `waitingForHand` and `raiseHand` after `normalizationDesc` are part of the original structure.
-    waitingForHand: "Waiting...",
-    raiseHand: "Raise your hand in front of the camera...",
     step2Classification: "Step 2: Classification",
     shapeRecognition: "Shape Recognition",
     shapeComparison: "The AI doesn't just measure distance. It compares the overall hand shape. It's like a child's game: \"Does this shape fit in the Open Hand or Closed Fist box?\"",
@@ -555,13 +551,6 @@ const translations = {
     layersExplanation: "The 42 coordinates pass through layers of mathematical neurons to calculate the final score.",
     foundPositions: "📍 Found Positions",
     bestConfidence: "🎯 Best Confidence",
-    // Data Transformation Step
-    stepDataTransformation: "Data Transformation",
-    fromLandmarksToNumbers: "From Points to Numbers",
-    dataExplanation: "The neural network doesn't see your hand. It needs pure numbers. We convert the 21 detected points by MediaPipe.",
-    mathExplanation: "21 points x 2 coordinates (X, Y) = 42 input numbers for AI #2.",
-    normalizationTitle: "Normalization",
-    normalizationDesc: "We crop points relative to the wrist. So the gesture works whether you are near, far, left, or right!",
   },
 };
 
