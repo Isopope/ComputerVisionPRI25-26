@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Camera, Brain, Filter, BarChart3, GitMerge, CheckCircle2, X, Eye, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Brain, Filter, BarChart3, GitMerge, CheckCircle2, X, Eye, Sparkles, Trophy, Play, Star, CheckCircle, XCircle, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Slider } from "@/components/ui/slider";
@@ -54,7 +54,15 @@ export const DobbleExplanationSteps = ({
   const [step, setStep] = useState(0);
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.3);
   const [showMatchAnimation, setShowMatchAnimation] = useState(false);
-  const STEPS_COUNT = 7;
+  const STEPS_COUNT = 8;
+
+  // Quiz State
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [quizScore, setQuizScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   // Filter detections by current threshold for step 3
   const filteredDetections = yoloResult.detections_detailed?.filter(
@@ -96,6 +104,43 @@ export const DobbleExplanationSteps = ({
   }, [step]);
 
   if (!isOpen) return null;
+
+  // Quiz questions for Dobble
+  const questions = [
+    {
+      q: t("dobbleQ1"),
+      options: [t("dobbleQ1_opt1"), t("dobbleQ1_opt2"), t("dobbleQ1_opt3")],
+      correct: 1
+    },
+    {
+      q: t("dobbleQ2"),
+      options: [t("dobbleQ2_opt1"), t("dobbleQ2_opt2"), t("dobbleQ2_opt3")],
+      correct: 0
+    },
+    {
+      q: t("dobbleQ3"),
+      options: [t("dobbleQ3_opt1"), t("dobbleQ3_opt2"), t("dobbleQ3_opt3")],
+      correct: 2
+    }
+  ];
+
+  const handleAnswer = (index: number) => {
+    if (selectedAnswer !== null) return;
+    setSelectedAnswer(index);
+    const correct = index === questions[currentQuestion].correct;
+    setIsAnswerCorrect(correct);
+    if (correct) setQuizScore(s => s + 1);
+
+    setTimeout(() => {
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(c => c + 1);
+        setSelectedAnswer(null);
+        setIsAnswerCorrect(null);
+      } else {
+        setQuizCompleted(true);
+      }
+    }, 1500);
+  };
 
   const handleNext = () => {
     if (step < STEPS_COUNT - 1) {
@@ -596,6 +641,122 @@ export const DobbleExplanationSteps = ({
               <div className="text-xs text-muted-foreground mt-1">{t("dobbleStep3Subtitle")}</div>
             </div>
           </div>
+        </div>
+      )
+    },
+
+    // STEP 7: QUIZ
+    {
+      title: t("quizTitle"),
+      icon: <Trophy className="w-12 h-12 text-yellow-500" />,
+      explanation: (
+        <div className="space-y-6">
+          <h2 className="text-3xl font-bold">
+            {quizCompleted ? t("results") : t("question") + ` ${currentQuestion + 1}/${questions.length}`}
+          </h2>
+
+          {!quizStarted ? (
+            <div className="space-y-4">
+              <p className="text-xl text-muted-foreground leading-relaxed">
+                {t("dobbleQuizIntro")}
+              </p>
+              <Button onClick={() => setQuizStarted(true)} className="w-full py-6 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white border-0">
+                <Play className="w-6 h-6 mr-2 fill-current" />
+                {t("startQuiz")}
+              </Button>
+            </div>
+          ) : quizCompleted ? (
+            <div className="space-y-6 animate-in slide-in-from-bottom duration-500">
+              <div className="p-6 bg-card border-2 rounded-2xl flex flex-col items-center gap-4">
+                <div className="text-sm uppercase font-bold text-muted-foreground">{t("score")}</div>
+                <div className="text-6xl font-black text-primary">
+                  {quizScore}/{questions.length}
+                </div>
+                <div className="flex gap-2">
+                  {[...Array(3)].map((_, i) => (
+                    <Star key={i} className={cn("w-8 h-8", i < quizScore ? "text-yellow-500 fill-yellow-500" : "text-muted")} />
+                  ))}
+                </div>
+              </div>
+              <p className="text-center text-xl font-medium">
+                {quizScore === 3 ? t("quizPerfect") : quizScore > 0 ? t("quizGood") : t("quizTryAgain")}
+              </p>
+              <Button onClick={onClose} variant="outline" className="w-full">
+                {t("finish")}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-xl font-medium mb-6">{questions[currentQuestion].q}</p>
+              <div className="space-y-3">
+                {questions[currentQuestion].options.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleAnswer(idx)}
+                    disabled={selectedAnswer !== null}
+                    className={cn(
+                      "w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-center justify-between group hover:shadow-md",
+                      selectedAnswer === null
+                        ? "hover:bg-accent hover:border-primary/50"
+                        : selectedAnswer === idx
+                          ? (idx === questions[currentQuestion].correct ? "bg-green-500 text-white border-green-600" : "bg-red-500 text-white border-red-600")
+                          : (idx === questions[currentQuestion].correct ? "bg-green-100 dark:bg-green-900/30 border-green-500" : "opacity-50")
+                    )}
+                  >
+                    <span className="font-medium">{opt}</span>
+                    {selectedAnswer === idx && (
+                      idx === questions[currentQuestion].correct
+                        ? <CheckCircle className="w-5 h-5" />
+                        : <XCircle className="w-5 h-5" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ),
+      visual: (
+        <div className="flex flex-col items-center justify-center w-full h-full">
+          {!quizStarted ? (
+            <div className="relative group cursor-pointer" onClick={() => setQuizStarted(true)}>
+              <div className="absolute inset-0 bg-yellow-500/20 blur-3xl rounded-full group-hover:bg-yellow-500/30 transition-all duration-500" />
+              <HelpCircle className="w-64 h-64 text-yellow-500 relative z-10 animate-bounce group-hover:scale-110 transition-transform duration-300" />
+            </div>
+          ) : quizCompleted ? (
+            <div className="relative">
+              <div className="absolute inset-0 bg-yellow-500/20 blur-3xl rounded-full animate-pulse" />
+              <Trophy className="w-64 h-64 text-yellow-500 relative z-10 animate-in zoom-in spin-in-12 duration-700" />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-8 w-full max-w-lg p-4">
+              {/* Visual hint based on question */}
+              {currentQuestion === 0 && (
+                <div className="animate-in fade-in flex flex-col items-center gap-4">
+                  <div className="text-6xl">🔍</div>
+                  <p className="text-muted-foreground text-center">YOLO = You Only Look Once</p>
+                </div>
+              )}
+              {currentQuestion === 1 && (
+                <div className="animate-in fade-in flex items-center gap-4">
+                  <div className="p-4 bg-green-500/20 border-4 border-green-500 rounded-lg">
+                    <span className="text-4xl">🎯</span>
+                  </div>
+                  <span className="text-2xl">→</span>
+                  <div className="text-4xl font-bold text-green-600">85%</div>
+                </div>
+              )}
+              {currentQuestion === 2 && (
+                <div className="animate-in fade-in flex flex-col items-center gap-4">
+                  <div className="flex gap-4">
+                    <div className="w-24 h-24 rounded-full bg-blue-500/20 border-2 border-blue-500 flex items-center justify-center text-2xl">🌟⚡🎈</div>
+                    <div className="w-24 h-24 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center text-2xl">🎈🔥💎</div>
+                  </div>
+                  <div className="text-4xl animate-bounce">🎈</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )
     }

@@ -277,7 +277,22 @@ const translations = {
     dobbleStep6ProcessingTime: "Temps de traitement",
     dobbleStep6FinalConfidence: "Confiance finale",
     dobbleStep6CommonSymbolLabel: "Symbole commun identifié",
-    dobbleStep6Success: "Analyse réussie !"
+    dobbleStep6Success: "Analyse réussie !",
+
+    // Quiz Dobble
+    dobbleQuizIntro: "Testons tes connaissances sur YOLO et la détection d'objets ! 3 questions rapides t'attendent.",
+    dobbleQ1: "Que signifie 'YOLO' dans le contexte de la vision par ordinateur ?",
+    dobbleQ1_opt1: "Your Only Lucky Option",
+    dobbleQ1_opt2: "You Only Look Once",
+    dobbleQ1_opt3: "Yellow Object Location Output",
+    dobbleQ2: "Que représente une 'bounding box' (boîte englobante) ?",
+    dobbleQ2_opt1: "Un rectangle autour d'un objet détecté",
+    dobbleQ2_opt2: "La couleur de l'objet",
+    dobbleQ2_opt3: "Le nom du fichier image",
+    dobbleQ3: "Comment trouve-t-on le symbole commun entre deux cartes Dobble ?",
+    dobbleQ3_opt1: "En choisissant au hasard",
+    dobbleQ3_opt2: "En comparant les tailles",
+    dobbleQ3_opt3: "En comptant quel symbole apparaît 2 fois"
   },
   en: {
     welcome: "🎉 Welcome to the AI Fun Workshop!",
@@ -527,6 +542,21 @@ const translations = {
     dobbleStep6FinalConfidence: "Final confidence",
     dobbleStep6CommonSymbolLabel: "Common symbol identified",
     dobbleStep6Success: "Analysis successful!",
+
+    // Quiz Dobble
+    dobbleQuizIntro: "Let's test your knowledge about YOLO and object detection! 3 quick questions await you.",
+    dobbleQ1: "What does 'YOLO' mean in computer vision?",
+    dobbleQ1_opt1: "Your Only Lucky Option",
+    dobbleQ1_opt2: "You Only Look Once",
+    dobbleQ1_opt3: "Yellow Object Location Output",
+    dobbleQ2: "What does a 'bounding box' represent?",
+    dobbleQ2_opt1: "A rectangle around a detected object",
+    dobbleQ2_opt2: "The color of the object",
+    dobbleQ2_opt3: "The image file name",
+    dobbleQ3: "How do we find the common symbol between two Dobble cards?",
+    dobbleQ3_opt1: "By choosing randomly",
+    dobbleQ3_opt2: "By comparing sizes",
+    dobbleQ3_opt3: "By counting which symbol appears twice",
 
     yourTurn: "Your turn!",
     gameInProgress: "Game in progress...",
