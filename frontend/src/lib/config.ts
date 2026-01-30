@@ -8,13 +8,13 @@ export const getBackendUrl = (): string => {
     // L'URL sera fournie par Electron via IPC
     return 'http://127.0.0.1:8000';
   }
-  
+
   // En mode développement
   if (import.meta.env.DEV) {
     return 'http://localhost:8000';
   }
-  
-  // En production standalone
+
+  // En production standalone (et fallback)
   return 'http://127.0.0.1:8000';
 };
 

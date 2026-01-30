@@ -29,7 +29,12 @@ const HAND_CONNECTIONS = [
 ];
 
 // WebSocket URL
-const WS_URL = "ws://localhost:8000/ws/gesture";
+import { getBackendUrl } from "@/lib/config";
+
+const getWsUrl = () => {
+  const httpUrl = getBackendUrl();
+  return httpUrl.replace(/^http/, 'ws') + '/ws/gesture';
+};
 
 export const GestureDetector = ({ onGestureDetected, fps = 60, showLandmarks = true, showDebugInfo = true }: GestureDetectorProps) => {
   const { videoRef, isReady, error, startCamera, stopCamera } = useCamera();
@@ -243,7 +248,7 @@ export const GestureDetector = ({ onGestureDetected, fps = 60, showLandmarks = t
     if (!isReady || !videoRef.current || !canvasRef.current) return;
 
     // Créer la connexion WebSocket
-    const ws = new WebSocket(WS_URL);
+    const ws = new WebSocket(getWsUrl());
     wsRef.current = ws;
 
     ws.onopen = () => {

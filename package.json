@@ -50,8 +50,20 @@
     },
     "extraResources": [
       {
+        "from": "docker-compose.yml",
+        "to": "../docker-compose.yml"
+      },
+      {
         "from": "backend",
-        "to": "backend"
+        "to": "../backend",
+        "filter": [
+          "**/*",
+          "!.venv/**",
+          "!__pycache__/**",
+          "!*.pyc",
+          "!dist/**",
+          "!build/**"
+        ]
       },
       {
         "from": "frontend/dist",

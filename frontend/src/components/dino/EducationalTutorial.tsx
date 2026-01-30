@@ -37,18 +37,23 @@ const HAND_CONNECTIONS = [
     [5, 9], [9, 13], [13, 17]
 ];
 
-const WS_URL = "ws://localhost:8000/ws/gesture";
+import { getBackendUrl } from "@/lib/config";
+
+const getWsUrl = () => {
+    const httpUrl = getBackendUrl();
+    return httpUrl.replace(/^http/, 'ws') + '/ws/gesture';
+};
 
 // Composant pour cloner un flux vidéo MediaStream
 const VideoClone = ({ srcObject }: { srcObject: MediaStream }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
-    
+
     useEffect(() => {
         if (videoRef.current && srcObject) {
             videoRef.current.srcObject = srcObject;
         }
     }, [srcObject]);
-    
+
     return (
         <video
             ref={videoRef}
@@ -65,14 +70,14 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
     const { t } = useLanguage();
     const [step, setStep] = useState(0);
     const STEPS_COUNT = 8;
-    
+
     // ===== SYSTÈME DE DÉTECTION DE GESTES INTÉGRÉ =====
     const { videoRef, isReady: isCameraReady, startCamera, stopCamera } = useCamera();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const animationFrameRef = useRef<number | null>(null);
-    
+
     // State pour les données de geste (interne au composant)
     const [gestureData, setGestureData] = useState<GestureData>({
         gesture: "neutral",
@@ -83,15 +88,15 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
     });
     const [wsConnected, setWsConnected] = useState(false);
     const [realFps, setRealFps] = useState(0);
-    
+
     // Toggle vue squelette/caméra pour step 1
     const [showCameraView, setShowCameraView] = useState(false);
-    
+
     // Refs pour le lissage temporel
     const gestureHistoryRef = useRef<string[]>([]);
     const frameCountRef = useRef(0);
     const lastFpsUpdateRef = useRef(0);
-    
+
     // Quiz State
     const [quizStarted, setQuizStarted] = useState(false);
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -213,17 +218,17 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
         const rect = canvas.getBoundingClientRect();
         const displayWidth = rect.width;
         const displayHeight = rect.height;
-        
+
         // Dimensions natives de la vidéo
         const videoWidth = videoRef.current.videoWidth || 640;
         const videoHeight = videoRef.current.videoHeight || 480;
-        
+
         // Calculer le ratio pour object-contain
         const videoRatio = videoWidth / videoHeight;
         const containerRatio = displayWidth / displayHeight;
-        
+
         let drawWidth, drawHeight, offsetX, offsetY;
-        
+
         if (videoRatio > containerRatio) {
             // Vidéo plus large - barres en haut/bas
             drawWidth = displayWidth;
@@ -237,19 +242,19 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
             offsetX = (displayWidth - drawWidth) / 2;
             offsetY = 0;
         }
-        
+
         // Ajuster les dimensions du canvas pour correspondre à l'affichage CSS
         if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
             canvas.width = displayWidth;
             canvas.height = displayHeight;
         }
-        
+
         // Clear le canvas
         ctx.clearRect(0, 0, displayWidth, displayHeight);
 
         // Dessiner les landmarks avec l'offset correct
         const landmarks = gestureData.landmarks;
-        
+
         // Dessiner les connexions
         ctx.strokeStyle = "rgb(168, 85, 247)";
         ctx.lineWidth = 3;
@@ -259,20 +264,20 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
                 const y1 = offsetY + landmarks[start].y * drawHeight;
                 const x2 = offsetX + landmarks[end].x * drawWidth;
                 const y2 = offsetY + landmarks[end].y * drawHeight;
-                
+
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);
                 ctx.stroke();
             }
         }
-        
+
         // Dessiner les points
         landmarks.forEach((landmark, index) => {
             const x = offsetX + landmark.x * drawWidth;
             const y = offsetY + landmark.y * drawHeight;
             const fingerTips = [4, 8, 12, 16, 20];
-            
+
             ctx.fillStyle = fingerTips.includes(index) ? "rgb(34, 197, 94)" : "rgb(255, 255, 255)";
             ctx.beginPath();
             ctx.arc(x, y, fingerTips.includes(index) ? 8 : 5, 0, Math.PI * 2);
@@ -286,12 +291,12 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
     // Démarrer la caméra et WebSocket (avec délai pour éviter conflit avec l'ancienne caméra)
     useEffect(() => {
         if (!isOpen) return;
-        
+
         // Délai pour laisser le temps à l'ancienne caméra de se libérer
         const timer = setTimeout(() => {
             startCamera();
         }, 300);
-        
+
         return () => {
             clearTimeout(timer);
             stopCamera();
@@ -308,7 +313,7 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
     useEffect(() => {
         if (!isOpen || !isCameraReady || !videoRef.current || !canvasRef.current) return;
 
-        const ws = new WebSocket(WS_URL);
+        const ws = new WebSocket(getWsUrl());
         wsRef.current = ws;
 
         ws.onopen = () => setWsConnected(true);
@@ -665,7 +670,7 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
             )
         },
@@ -1118,7 +1123,7 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
             />
             {/* Canvas caché pour l'envoi des frames au WebSocket */}
             <canvas ref={canvasRef} className="hidden" />
-            
+
             {/* Left Side: Visualization (2/3) */}
             <div className="w-full md:w-2/3 h-1/2 md:h-full bg-muted/30 p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-border relative overflow-hidden">
                 <div className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground/50 font-mono text-sm">

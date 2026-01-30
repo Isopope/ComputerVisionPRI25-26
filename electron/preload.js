@@ -4,10 +4,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   // Vérifier la santé du backend
   checkBackendHealth: () => ipcRenderer.invoke('check-backend-health'),
-  
+
   // Obtenir l'URL du backend
   getBackendUrl: () => ipcRenderer.invoke('get-backend-url'),
-  
+
   // Informations sur l'application
   getAppInfo: () => ({
     platform: process.platform,
@@ -16,5 +16,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
   })
 });
 
-// Log pour le debugging
-console.log('🔐 Preload script chargé - APIs exposées');

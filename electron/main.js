@@ -1,304 +1,179 @@
-const { app, BrowserWindow, dialog, ipcMain, protocol } = require('electron');
-const path = require('path');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const { spawn } = require('child_process');
-const axios = require('axios');
+const path = require('path');
 
-// Alternative à electron-is-dev
-const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-
-let mainWindow;
-let backendProcess = null;
-const BACKEND_PORT = 8000;
+// --- Configuration ---
+const isDev = !app.isPackaged;
 const FRONTEND_PORT = 8080;
-const BACKEND_URL = `http://127.0.0.1:${BACKEND_PORT}`; // IPv4 explicite
+const DEV_URL = `http://localhost:${FRONTEND_PORT}`;
+const BACKEND_PORT = 8000;
+const BACKEND_URL = `http://127.0.0.1:${BACKEND_PORT}`;
 
-// Configuration de l'application
-app.setName('Polytech Tours Computer Vision');
+// Global references
+let win = null;
+let backendProcess = null;
 
-// Créer la fenêtre principale
-async function createWindow() {
-  mainWindow = new BrowserWindow({
+// --- Window Creation ---
+function createWindow() {
+  win = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 1200,
     minHeight: 800,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      enableRemoteModule: false,
-      preload: path.join(__dirname, 'preload.js')
-    },
     icon: path.join(__dirname, 'assets', 'icon.png'),
-    title: 'Polytech Tours Computer Vision',
-    show: false, // Ne pas afficher immédiatement
-    titleBarStyle: 'default'
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+    show: false, // Wait for ready-to-show
+    title: 'Polytech Tours Computer Vision'
   });
 
-  // Afficher la fenêtre une fois prête
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+  // Load Frontend
+  if (isDev) {
+    console.log(`🌐 Loading Dev URL: ${DEV_URL}`);
+    win.loadURL(DEV_URL);
+    win.webContents.openDevTools();
+  } else {
+    // In production, resources are in resources/frontend
+    const indexPath = path.join(process.resourcesPath, 'frontend', 'index.html');
+    console.log(`🌐 Loading Production File: ${indexPath}`);
 
-    // Ouvrir les DevTools en mode développement et en mode packagé pour debug
-    if (isDev || true) { // Temporairement activé pour debug
-      mainWindow.webContents.openDevTools();
+    // Safety check
+    const fs = require('fs');
+    if (!fs.existsSync(indexPath)) {
+      console.error(`❌ Critical: Index not found at ${indexPath}`);
+      dialog.showErrorBox('Error', 'Frontend files missing.');
     }
+
+    win.loadFile(indexPath);
+    win.removeMenu();
+  }
+
+  win.once('ready-to-show', () => {
+    win.show();
   });
 
-  // Logging des erreurs de console
-  mainWindow.webContents.on('console-message', (level, message, line, sourceId) => {
-    console.log(`[RENDERER] (${sourceId}:${line}) ${message}`);
+  // Handle new window opening (external links)
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
   });
 
-  // Logging des erreurs non traitées
-  mainWindow.webContents.on('crashed', () => {
-    console.error('❌ Le renderer process a crashé');
-    dialog.showErrorBox('Erreur', 'Le renderer process a crashé');
-  });
-
-  // Gestion de la fermeture de la fenêtre
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-    stopBackend();
-  });
-
-  // Charger l'application
-  await loadApplication();
+  // Start Backend
+  startBackend();
 }
 
-// Démarrer le backend Python
+// --- Backend Management ---
 async function startBackend() {
-  return new Promise(async (resolve, reject) => {
-    try {
-      console.log('🔄 Démarrage du backend YOLO...');
+  if (backendProcess) return; // Already running
 
-      const backendPath = isDev
-        ? path.join(__dirname, '..', 'backend')
-        : path.join(process.resourcesPath, 'backend');
+  console.log('🔄 Starting Backend...');
+  let executablePath;
+  let args = [];
+  let cwd;
+  let env = { ...process.env };
 
-      const pythonPath = isDev
-        ? path.join(backendPath, '.venv', 'Scripts', 'python.exe')
-        : path.join(backendPath, '.venv', 'Scripts', 'python.exe');
+  try {
+    if (isDev) {
+      // DEV: Use Python script directly
+      const backendRoot = path.join(__dirname, '..', 'backend');
+      executablePath = path.join(backendRoot, '.venv', 'Scripts', 'python.exe');
+      const scriptPath = path.join(backendRoot, 'main.py');
 
-      const scriptPath = path.join(backendPath, 'main.py');
+      args = [scriptPath];
+      cwd = backendRoot;
+      env.PYTHONPATH = backendRoot;
 
-      console.log(`🐍 Python: ${pythonPath}`);
-      console.log(`📄 Script: ${scriptPath}`);
-
-      // Vérifier que les fichiers existent
+      // Verify files
       const fs = require('fs');
-      if (!fs.existsSync(pythonPath)) {
-        throw new Error(`Python non trouvé: ${pythonPath}\n\nUtilisez le script install-python-deps.bat pour installer les dépendances.`);
-      }
-      if (!fs.existsSync(scriptPath)) {
-        throw new Error(`Script non trouvé: ${scriptPath}`);
-      }
+      if (!fs.existsSync(executablePath)) throw new Error(`Python not found: ${executablePath}`);
+      if (!fs.existsSync(scriptPath)) throw new Error(`Script not found: ${scriptPath}`);
 
-      console.log('✅ Fichiers Python trouvés');
+      console.log(`🐍 Dev Backend: ${executablePath} ${args}`);
 
-      // Lancer le processus backend avec variables d'environnement
-      const env = { ...process.env };
-      // S'assurer que Python peut trouver les modules
-      env.PYTHONPATH = backendPath;
-
-      backendProcess = spawn(pythonPath, [scriptPath], {
-        cwd: backendPath,
+      backendProcess = spawn(executablePath, args, {
+        cwd,
+        env,
         stdio: ['ignore', 'pipe', 'pipe'],
-        env: env
+        windowsHide: true,
+        detached: false
       });
-    } catch (error) {
-      console.error('❌ Erreur lors de la préparation du backend:', error);
-      // Afficher un message d'erreur à l'utilisateur
-      if (mainWindow) {
-        dialog.showErrorBox(
-          'Erreur de démarrage Python',
-          'Impossible de démarrer le backend Python.\n\n' +
-          'Erreur: ' + error.message + '\n\n' +
-          'Solution: Utilisez le script install-python-deps.bat'
-        );
-      }
-      reject(error);
-      return;
+
+    } else {
+      // PROD: Use Docker container
+      const projectRoot = path.join(process.resourcesPath, '..');
+      executablePath = 'docker-compose';
+      args = ['up', '-d', '--build'];
+      cwd = projectRoot;
+
+      console.log(`🐳 Prod Backend (Docker): ${executablePath} ${args.join(' ')}`);
+      console.log(`   Working directory: ${cwd}`);
+
+      backendProcess = spawn(executablePath, args, {
+        cwd,
+        env,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        shell: true, // Required for docker-compose on Windows
+        windowsHide: true,
+        detached: false
+      });
     }
 
-    let backendReady = false;
+    console.log('✅ Backend process spawned with PID:', backendProcess.pid);
 
-    // Gérer les logs du backend
+    // Logging
     backendProcess.stdout.on('data', (data) => {
-      console.log(`[Backend] ${data.toString()}`);
-
-      // Vérifier si le serveur est démarré
-      if (data.toString().includes('Uvicorn running on') && !backendReady) {
-        backendReady = true;
-        console.log('✅ Backend démarré avec succès');
-        // Attendre un peu plus pour que le serveur soit vraiment prêt
-        setTimeout(() => {
-          resolve();
-        }, 2000);
-      }
+      console.log(`[Backend]: ${data.toString()}`);
     });
 
     backendProcess.stderr.on('data', (data) => {
-      console.error(`[Backend Error] ${data.toString()}`);
-      // Aussi vérifier dans stderr car certains serveurs loggent là
-      if (data.toString().includes('Uvicorn running on') && !backendReady) {
-        backendReady = true;
-        console.log('✅ Backend démarré avec succès (stderr)');
-        setTimeout(() => {
-          resolve();
-        }, 2000);
-      }
+      console.error(`[Backend ERR]: ${data.toString()}`);
     });
 
-    backendProcess.on('close', (code) => {
-      console.log(`🔴 Backend fermé avec le code: ${code}`);
-      if (code !== 0 && code !== null && !backendReady) {
-        const errorMsg = `Backend fermé avec le code: ${code}.\n\n` +
-          `Cela peut être dû à:\n` +
-          `• Dépendances Python manquantes\n` +
-          `• Problème avec le modèle YOLO\n` +
-          `• Conflit de port\n\n` +
-          `Solution: Utilisez install-python-deps.bat`;
-
-        if (mainWindow) {
-          dialog.showErrorBox('Erreur Backend Python', errorMsg);
-        }
-        reject(new Error(errorMsg));
-      }
+    backendProcess.on('exit', (code, signal) => {
+      console.log(`🔴 Backend stopped with code ${code} / signal ${signal}`);
+      backendProcess = null;
     });
-
-    backendProcess.on('error', (error) => {
-      console.error('❌ Erreur backend:', error);
-      if (!backendReady) {
-        reject(error);
-      }
-    });
-
-    // Timeout de démarrage plus long
-    setTimeout(() => {
-      if (!backendReady) {
-        reject(new Error('Timeout: Le backend n\'a pas démarré dans les temps'));
-      }
-    }, 60000); // 60 secondes au lieu de 30
-  });
-}
-
-// Arrêter le backend
-function stopBackend() {
-  if (backendProcess) {
-    console.log('🛑 Arrêt du backend...');
-    backendProcess.kill('SIGTERM');
-    backendProcess = null;
-  }
-}
-
-// Vérifier si le backend est en vie
-async function checkBackendHealth() {
-  // Essayer différentes URL car il peut y avoir des problèmes IPv6/IPv4
-  const urls = [
-    `http://127.0.0.1:${BACKEND_PORT}/api/health`,  // IPv4 explicite
-    `http://localhost:${BACKEND_PORT}/api/health`,   // localhost
-    `${BACKEND_URL}/api/health`                      // URL originale
-  ];
-
-  for (const url of urls) {
-    try {
-      console.log(`🔗 Testing: ${url}`);
-      const response = await axios.get(url, {
-        timeout: 5000,
-        headers: {
-          'User-Agent': 'Electron-App'
-        }
-      });
-      if (response.status === 200) {
-        console.log(`✅ Health check success: ${url}`);
-        return true;
-      }
-    } catch (error) {
-      console.log(`❌ ${url} failed: ${error.message}`);
-    }
-  }
-
-  return false;
-}
-
-// Charger l'application dans la fenêtre
-async function loadApplication() {
-  try {
-    // Afficher un écran de chargement
-    mainWindow.loadFile(path.join(__dirname, 'loading.html'));
-
-    // Démarrer le backend
-    await startBackend();
-
-    // Attendre que le backend soit prêt avec une vérification plus robuste
-    let attempts = 0;
-    const maxAttempts = 30; // 30 tentatives * 2 secondes = 60 secondes max
-
-    console.log('🔍 Vérification de la santé du backend...');
-    while (attempts < maxAttempts) {
-      if (await checkBackendHealth()) {
-        console.log('✅ Backend prêt et opérationnel !');
-        break;
-      }
-
-      console.log(`⏳ Attente du backend... (${attempts + 1}/${maxAttempts})`);
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Attendre 2 secondes
-      attempts++;
-    }
-
-    if (attempts >= maxAttempts) {
-      console.log('⚠️ Le backend ne répond pas aux vérifications de santé, mais on continue...');
-    }
-
-    // Charger le frontend
-    let frontendUrl;
-    if (isDev) {
-      frontendUrl = `http://localhost:${FRONTEND_PORT}`;
-      console.log(`📁 Mode dev: ${frontendUrl}`);
-    } else {
-      // En production, charger directement le fichier HTML
-      const fs = require('fs');
-      const frontendPath = path.join(process.resourcesPath, 'frontend', 'index.html');
-      console.log(`📁 Chemin frontend production: ${frontendPath}`);
-      console.log(`📁 resourcesPath: ${process.resourcesPath}`);
-
-      // Vérifier que le fichier existe
-      if (!fs.existsSync(frontendPath)) {
-        throw new Error(`Frontend index.html non trouvé: ${frontendPath}\n\nVérifiez que frontend/dist est inclus dans extraResources`);
-      }
-
-      frontendUrl = `file://${frontendPath}`;
-    }
-
-    console.log(`🌐 Chargement du frontend: ${frontendUrl}`);
-    await mainWindow.loadURL(frontendUrl);
-
-    console.log('🎉 Application chargée avec succès !');
 
   } catch (error) {
-    console.error('❌ Erreur lors du chargement:', error);
-
-    // Afficher une boîte de dialogue d'erreur
-    dialog.showErrorBox(
-      'Erreur de démarrage',
-      `Impossible de démarrer l'application:\n\n${error.message}\n\nVérifiez que Python et les dépendances sont installés.`
-    );
-
-    app.quit();
+    console.error('❌ Failed to start backend:', error);
+    dialog.showErrorBox('Backend Error', `Failed to start backend:\n${error.message}`);
   }
 }
 
-// Gestion des événements de l'application
-app.whenReady().then(async () => {
-  createWindow();
-});
+function cleanup() {
+  if (isDev) {
+    // Dev mode: kill Python process
+    if (backendProcess) {
+      console.log('🛑 Killing backend process...');
+      backendProcess.kill(); // SIGTERM
+      backendProcess = null;
+    }
+  } else {
+    // Prod mode: stop Docker container
+    console.log('🛑 Stopping Docker container...');
+    const projectRoot = path.join(process.resourcesPath, '..');
+    spawn('docker-compose', ['down'], {
+      cwd: projectRoot,
+      shell: true,
+      windowsHide: true
+    });
+  }
+}
+
+// --- App Lifecycle ---
+app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-  stopBackend();
+  cleanup();
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
+
+app.on('before-quit', cleanup);
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
@@ -306,15 +181,15 @@ app.on('activate', () => {
   }
 });
 
-app.on('before-quit', () => {
-  stopBackend();
-});
-
-// IPC pour la communication avec le renderer
+// --- IPC Handlers ---
 ipcMain.handle('check-backend-health', async () => {
-  return await checkBackendHealth();
+  try {
+    // Use native fetch (Node 18+)
+    const response = await fetch(`${BACKEND_URL}/api/health`);
+    return response.ok;
+  } catch (e) {
+    return false;
+  }
 });
 
-ipcMain.handle('get-backend-url', () => {
-  return BACKEND_URL;
-});
+ipcMain.handle('get-backend-url', () => BACKEND_URL);
