@@ -9,12 +9,12 @@ import { useToast } from "@/hooks/use-toast";
 import { analyzeDobble } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 
-type SubMode = "capture" | null;
+type SubMode = "capture" | "realtime" | null;
 
 const PreGame = () => {
   const navigate = useNavigateWithLang();
   const [searchParams] = useSearchParams();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { toast } = useToast();
 
   const gameFromUrl = searchParams.get("game");
@@ -39,17 +39,21 @@ const PreGame = () => {
 
   // Demander l'accès à la caméra si mode capture sélectionné
   useEffect(() => {
-    if (selectedSubMode === "capture" && !stream) {
+    const isStreamActive = stream?.getTracks().some(track => track.readyState === 'live');
+
+    // Démarrer la caméra seulement si on est en mode capture, qu'il n'y a pas d'image capturée, et que le stream n'est pas actif
+    if (selectedSubMode === "capture" && !capturedImage && !isStreamActive) {
       startCamera();
     }
 
-    // Nettoyer le stream quand on quitte
+    // Nettoyer le stream quand on quitte ou change de sous-mode
     return () => {
-      if (stream) {
+      if (stream && selectedSubMode !== "capture") {
         stream.getTracks().forEach(track => track.stop());
+        setStream(null);
       }
     };
-  }, [selectedSubMode]);
+  }, [selectedSubMode, capturedImage]);
 
   const startCamera = async () => {
     try {
@@ -85,6 +89,12 @@ const PreGame = () => {
         ctx.drawImage(video, 0, 0);
         const imageData = canvas.toDataURL('image/jpeg');
         setCapturedImage(imageData);
+
+        // Arrêter le flux caméra après capture
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          setStream(null);
+        }
       }
     }
   };
@@ -195,6 +205,36 @@ const PreGame = () => {
                 <p className="text-sm text-muted-foreground text-center">
                   {t("takePhoto")}
                 </p>
+              </div>
+
+              <div
+                onClick={() => modeFromUrl !== "ai-vs-human" && setSelectedSubMode("realtime")}
+                className={`game-card game-card-hover p-6 flex flex-col items-center gap-4 relative ${modeFromUrl === "ai-vs-human"
+                  ? "opacity-50 cursor-not-allowed"
+                  : selectedSubMode === "realtime"
+                    ? "ring-4 ring-secondary pulse-ring cursor-pointer"
+                    : "cursor-pointer"
+                  }`}
+              >
+                <div className={`p-4 rounded-full ${modeFromUrl === "ai-vs-human" ? "bg-muted text-muted-foreground" : "bg-secondary text-secondary-foreground"}`}>
+                  <Video className="w-12 h-12" />
+                </div>
+                <h3 className="text-lg font-bold text-center">
+                  🎥 {t("realTime")}
+                </h3>
+                <p className="text-sm text-muted-foreground text-center">
+                  {modeFromUrl === "ai-vs-human"
+                    ? (lang === "fr"
+                      ? "⚡ Impossible ! L'IA répond en <200ms, vous n'avez aucune chance 😅"
+                      : "⚡ Impossible! AI responds in <200ms, you have no chance 😅")
+                    : t("realTimeDesc")
+                  }
+                </p>
+                {modeFromUrl === "ai-vs-human" && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/5 rounded-lg">
+                    <span className="text-4xl">🚫</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

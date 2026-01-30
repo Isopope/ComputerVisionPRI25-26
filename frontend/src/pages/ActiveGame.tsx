@@ -10,6 +10,7 @@ import { BoundingBoxOverlay } from "@/components/BoundingBoxOverlay";
 import { useBackendHealth, useYoloDobbleAnalysis } from "@/hooks/useYolo";
 import { AIPureMode } from "@/components/game-modes/AIPureMode";
 import { AIvsHumanDobbleMode } from "@/components/game-modes/AIvsHumanDobbleMode";
+import { RealtimeDobbleMode } from "@/components/game-modes/RealtimeDobbleMode";
 
 // Symboles pour les cartes Dobble
 const DOBBLE_SYMBOLS = ["🌟", "🎯", "🎨", "🎪", "🎮", "🚀", "⚡", "💎", "🔥", "🌈", "🎵", "🎭", "🎲", "🏆", "💫", "🎸", "🎺", "🎻", "🥁", "🎤"];
@@ -76,9 +77,9 @@ const ActiveGame = () => {
     }
   }, [modeFromUrl, gameFromUrl]);
 
-  // Lancer l'analyse YOLO pour mode IA Pure
+  // Lancer l'analyse YOLO pour mode IA Pure (sauf realtime qui gère sa propre analyse)
   useEffect(() => {
-    if (modeFromUrl === "ai-pure" && capturedImageFromState && !analysisStarted && backendHealthy) {
+    if (modeFromUrl === "ai-pure" && subModeFromUrl !== "realtime" && capturedImageFromState && !analysisStarted && backendHealthy) {
       setAnalysisStarted(true);
       yoloMutation.mutate({
         image: capturedImageFromState,
@@ -86,7 +87,7 @@ const ActiveGame = () => {
         draw_boxes: true
       });
     }
-  }, [modeFromUrl, capturedImageFromState, analysisStarted, backendHealthy, yoloMutation]);
+  }, [modeFromUrl, subModeFromUrl, capturedImageFromState, analysisStarted, backendHealthy, yoloMutation]);
 
   // Démarrer un nouveau round pour Dobble
   const startNewRound = () => {
@@ -377,6 +378,16 @@ const ActiveGame = () => {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Rendu pour le mode IA Pure - Realtime
+  if (modeFromUrl === "ai-pure" && subModeFromUrl === "realtime") {
+    return (
+      <RealtimeDobbleMode
+        gameFromUrl={gameFromUrl}
+        modeFromUrl={modeFromUrl}
+      />
     );
   }
 
