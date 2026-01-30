@@ -92,8 +92,8 @@ const ModeSelection = () => {
               />
             )}
             <ModeButton
-              title={t("modeAIVsHuman")}
-              description={t("descAIVsHuman")}
+              title={gameFromUrl === "dino" ? t("modeGestureControl") : t("modeAIVsHuman")}
+              description={gameFromUrl === "dino" ? t("descGestureControl") : t("descAIVsHuman")}
               icon={Brain}
               selected={selectedMode === "ai-vs-human"}
               onClick={() => setSelectedMode("ai-vs-human")}
