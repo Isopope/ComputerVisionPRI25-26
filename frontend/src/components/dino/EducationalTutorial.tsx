@@ -191,10 +191,6 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
             }
         }
 
-        // Debug: log les landmarks pour vérifier les coordonnées
-        if (data.landmarks && data.landmarks.length > 0) {
-            console.log("Landmarks[0]:", data.landmarks[0]);
-        }
 
         setGestureData({
             gesture: mostFrequentGesture,
@@ -208,7 +204,6 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
     // Dessiner les landmarks quand en mode caméra
     useEffect(() => {
         if (!showCameraView || step !== 1 || !overlayCanvasRef.current || !videoRef.current) return;
-        if (!gestureData.landmarks || gestureData.landmarks.length === 0) return;
 
         const canvas = overlayCanvasRef.current;
         const ctx = canvas.getContext("2d");
@@ -249,8 +244,11 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
             canvas.height = displayHeight;
         }
 
-        // Clear le canvas
+        // IMPORTANT: Clear le canvas AVANT de vérifier si landmarks existe
         ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+        // Si pas de landmarks, on s'arrête ici (canvas déjà effacé)
+        if (!gestureData.landmarks || gestureData.landmarks.length === 0) return;
 
         // Dessiner les landmarks avec l'offset correct
         const landmarks = gestureData.landmarks;
