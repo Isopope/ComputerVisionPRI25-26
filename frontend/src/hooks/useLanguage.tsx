@@ -110,6 +110,12 @@ const translations = {
     neuralNetwork: "Réseau de Neurones",
     layersExplanation: "Les 42 coordonnées traversent des couches de neurones mathématiques pour calculer le score final.",
     bestConfidence: "🎯 Meilleure confiance",
+    howToPlayDino: "🎮 Comment jouer ?",
+    dinoJumpInstruction: "Le dino saute en changeant de geste !",
+    gestureExamples: "Exemples",
+    gestureChangeTip: "💡 Astuce : Alternez entre différents gestes pour sauter",
+    handVisibilityTip: "📸 Assurez-vous que votre main reste bien visible devant la caméra.",
+    startPlaying: "Commencer à jouer",
     // Dino Tutorial
     computerVisionTitle: "La Vision par Ordinateur",
     whatIsComputerVision: "Qu'est-ce que c'est ?",
@@ -219,7 +225,7 @@ const translations = {
     q3_opt2: "La certitude de l'IA",
     q3_opt3: "La qualité de ta webcam",
 
-    takePhoto: "Prends une photo",
+    takePhoto: "Prends une photo contenant les deux cartes",
     realTime: "Temps réel",
     realTimeDesc: "L'IA analysera en temps réel ce qu'elle voit",
 
@@ -485,7 +491,7 @@ const translations = {
     q3_opt2: "AI certainty",
     q3_opt3: "Webcam quality",
 
-    takePhoto: "Take a photo",
+    takePhoto: "Take a photo containing both cards",
     realTime: "Real Time",
     realTimeDesc: "The AI will analyze in real-time what it sees",
 
@@ -585,6 +591,12 @@ const translations = {
     layersExplanation: "The 42 coordinates pass through layers of mathematical neurons to calculate the final score.",
     foundPositions: "📍 Found Positions",
     bestConfidence: "🎯 Best Confidence",
+    howToPlayDino: "🎮 How to play?",
+    dinoJumpInstruction: "The dino jumps when you change gestures!",
+    gestureExamples: "Examples",
+    gestureChangeTip: "💡 Tip: Alternate between different gestures to jump",
+    handVisibilityTip: "📸 Make sure your hand remains clearly visible in front of the camera.",
+    startPlaying: "Start playing",
   },
 };
 

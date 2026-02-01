@@ -17,6 +17,12 @@ export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate, paused = fal
   const dinoRef = useRef<any>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const scoreCheckIntervalRef = useRef<number | null>(null);
+  const onJumpRef = useRef(onJump);
+
+  // Update ref when onJump changes
+  useEffect(() => {
+    onJumpRef.current = onJump;
+  }, [onJump]);
 
   // Expose jump method to parent for gesture control
   useEffect(() => {
@@ -51,28 +57,54 @@ export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate, paused = fal
     };
 
     (window as any).dinoJump = () => {
-      console.log("🦕 JUMP called via gesture");
+      if (paused) return;
+
       dispatchKeyDown("Space", " ", 32);
       setTimeout(() => dispatchKeyUp("Space", " ", 32), 100);
-      onJump?.();
+      onJumpRef.current?.();
     };
 
     return () => {
       delete (window as any).dinoJump;
+
+      // Nettoyage silencieux
+      const runner = (window as any).Runner?.instance_;
+      if (runner) {
+        try {
+          runner.stop();
+        } catch (e) { }
+      }
     };
-  }, [onJump]);
+  }, [paused]);
 
   // Handle keyboard input (space for jump)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        onJump?.();
+      if (e.code === "Space" && !paused) {
+        onJumpRef.current?.();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onJump]);
+  }, [paused]);
+
+  // Synchroniser l'état du Runner avec la prop 'paused'
+  useEffect(() => {
+    const runner = (window as any).Runner?.instance_;
+    if (!runner) return;
+
+    if (paused) {
+      runner.stop();
+      if (runner.audioContext) runner.audioContext.suspend();
+    } else {
+      // Ne pas relancer automatiquement si le jeu est en game over
+      if (!runner.crashed) {
+        runner.play();
+        if (runner.audioContext) runner.audioContext.resume();
+      }
+    }
+  }, [paused]);
 
   // Monitor game state and score via Runner global object
   useEffect(() => {
@@ -81,6 +113,11 @@ export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate, paused = fal
       const runner = (window as any).Runner?.instance_;
 
       if (runner) {
+        // Gérer le mutisme du son globalement si souhaité ou si en pause
+        if (paused && typeof runner.setMuted === 'function') {
+          // runner.setMuted(true); // Optionnel selon le comportement voulu
+        }
+
         // Récupérer le score (distanceRan * coefficient)
         const currentScore = runner.distanceMeter?.getActualDistance(runner.distanceRan) || 0;
 
