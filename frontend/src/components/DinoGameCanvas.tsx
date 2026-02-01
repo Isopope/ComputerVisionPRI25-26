@@ -96,12 +96,10 @@ export const DinoGameCanvas = ({ onJump, onGameOver, onScoreUpdate, paused = fal
 
     if (paused) {
       runner.stop();
-      if (runner.audioContext) runner.audioContext.suspend();
     } else {
       // Ne pas relancer automatiquement si le jeu est en game over
       if (!runner.crashed) {
         runner.play();
-        if (runner.audioContext) runner.audioContext.resume();
       }
     }
   }, [paused]);

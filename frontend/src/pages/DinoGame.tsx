@@ -89,6 +89,8 @@ const DinoGame = () => {
     // Le setTutorial(false) va débloquer le jeu
   };
 
+  const handleJump = useCallback(() => { }, []);
+
   return (
     <div className="min-h-screen relative flex flex-col p-6 overflow-hidden">
       <AnimatedBackground />
@@ -205,7 +207,7 @@ const DinoGame = () => {
             {/* Main Game Area */}
             <div className="flex-1">
               <DinoGameCanvas
-                onJump={useCallback(() => console.log("Jump triggered"), [])}
+                onJump={handleJump}
                 onGameOver={handleGameOver}
                 onScoreUpdate={(newScore) => setScore(newScore)}
                 paused={showInstructions}
