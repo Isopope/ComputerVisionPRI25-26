@@ -409,17 +409,17 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
         {
             q: t("q1"),
             options: [t("q1_opt1"), t("q1_opt2"), t("q1_opt3")],
-            correct: 1
+            correct: 1 // Un squelette de 21 points
         },
         {
             q: t("q2"),
             options: [t("q2_opt1"), t("q2_opt2"), t("q2_opt3")],
-            correct: 1
+            correct: 0 // Lui apprendre à partir d'exemples annotés
         },
         {
             q: t("q3"),
             options: [t("q3_opt1"), t("q3_opt2"), t("q3_opt3")],
-            correct: 1
+            correct: 1 // La certitude de l'IA
         }
     ];
 
@@ -1006,6 +1006,9 @@ export const EducationalTutorial = ({ isOpen, onComplete }: EducationalTutorialP
                             </div>
                             <p className="text-center text-xl font-medium">
                                 {quizScore === 3 ? t("quizPerfect") : quizScore > 0 ? t("quizGood") : t("quizTryAgain")}
+                            </p>
+                            <p className="text-center text-muted-foreground text-sm leading-relaxed">
+                                {t("quizThanks")}
                             </p>
                             <Button onClick={onComplete} variant="outline" className="w-full">
                                 {t("finish")}

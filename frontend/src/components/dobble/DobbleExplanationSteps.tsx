@@ -341,22 +341,22 @@ export const DobbleExplanationSteps = ({
         <div className="flex flex-col items-center justify-center h-full gap-6 p-8 w-full">
           {/* Image avec bounding boxes filtrées */}
           <div className="relative max-w-2xl w-full bg-muted rounded-2xl overflow-hidden border-2 border-pink-200">
-            <img 
-              src={capturedImage} 
-              alt="Confidence Filtering" 
+            <img
+              src={capturedImage}
+              alt="Confidence Filtering"
               className="w-full h-full object-contain"
             />
             {/* Afficher seulement les détections au-dessus du seuil */}
             {yoloResult.detections_detailed?.map((det, index) => {
               if (det.confiance < confidenceThreshold) return null;
-              
+
               const bbox = det.bbox_percent || {
                 x: (det.bbox[0] / 640) * 100,
                 y: (det.bbox[1] / 640) * 100,
                 width: ((det.bbox[2] - det.bbox[0]) / 640) * 100,
                 height: ((det.bbox[3] - det.bbox[1]) / 640) * 100
               };
-              
+
               return (
                 <div
                   key={index}
@@ -375,14 +375,14 @@ export const DobbleExplanationSteps = ({
                 </div>
               );
             })}
-            
+
             {/* Badge du nombre de détections visibles */}
             <div className="absolute top-4 left-4 bg-pink-500/90 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
               <Filter className="w-4 h-4" />
               {filteredDetections.length} / {yoloResult.detections_detailed?.length || 0}
             </div>
           </div>
-          
+
           {/* Stats en dessous */}
           <div className="flex gap-4 text-sm">
             <div className="px-4 py-2 bg-muted rounded-lg">
@@ -680,6 +680,9 @@ export const DobbleExplanationSteps = ({
               </div>
               <p className="text-center text-xl font-medium">
                 {quizScore === 3 ? t("quizPerfect") : quizScore > 0 ? t("quizGood") : t("quizTryAgain")}
+              </p>
+              <p className="text-center text-muted-foreground text-sm leading-relaxed">
+                {t("quizThanks")}
               </p>
               <Button onClick={onClose} variant="outline" className="w-full">
                 {t("finish")}
