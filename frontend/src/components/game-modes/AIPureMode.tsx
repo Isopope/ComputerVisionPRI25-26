@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useRef } from "react";
+import { cn } from "@/lib/utils";
 
 interface AIPureModeProps {
   gameFromUrl: string | null;
@@ -66,6 +67,26 @@ export const AIPureMode = ({
             </p>
           </div>
 
+          {/* Symbole Commun - Inspiré de AIvsHumanDobbleMode */}
+          {!yoloMutation.isPending && yoloMutation.data && (
+            <div className="game-card p-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-2 border-green-500">
+              <div className="text-center space-y-4">
+                <div className="text-6xl">🎯</div>
+                <h2 className="text-3xl font-bold text-green-600">
+                  {yoloMutation.data.result.label || "Symbole Commun"}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Symbole Commun Détecté
+                </p>
+                <div className="flex justify-center gap-2 text-sm">
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                    {yoloMutation.data.result.bounding_boxes?.length || 0} occurrences
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Zone centrale - Image analysée */}
           <div className="game-card p-6 flex-1 min-h-[400px] relative overflow-hidden">
             <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center relative">
@@ -83,26 +104,41 @@ export const AIPureMode = ({
                 </div>
               )}
 
-              {/* Overlay IA - Bounding boxes de YOLO */}
+              {/* Overlay IA - Bounding boxes de YOLO avec différenciation */}
               {!yoloMutation.isPending && yoloMutation.data && capturedImageFromState && imageRef.current && (
                 <>
-                  {yoloMutation.data.result.bounding_boxes.map((box: any, index: number) => (
-                    <div
-                      key={index}
-                      className="absolute border-4 border-primary rounded-lg bg-primary/20"
-                      style={{
-                        left: `${box.x}%`,
-                        top: `${box.y}%`,
-                        width: `${box.width}%`,
-                        height: `${box.height}%`,
-                      }}
-                    >
-                      {/* Label avec confiance */}
-                      <div className="absolute -top-8 left-0 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-                        {box.label} {Math.round(box.confidence * 100)}%
+                  {yoloMutation.data.result.bounding_boxes.map((box: any, index: number) => {
+                    // Vérifier si c'est le symbole commun
+                    const isCommonSymbol = box.label === yoloMutation.data.result.label;
+
+                    return (
+                      <div
+                        key={index}
+                        className={cn(
+                          "absolute border-4 rounded-lg transition-all",
+                          isCommonSymbol
+                            ? "border-green-500 bg-green-500/20 animate-pulse"
+                            : "border-primary/30 bg-primary/5"
+                        )}
+                        style={{
+                          left: `${box.x}%`,
+                          top: `${box.y}%`,
+                          width: `${box.width}%`,
+                          height: `${box.height}%`,
+                        }}
+                      >
+                        {/* Label avec confiance */}
+                        <div className={cn(
+                          "absolute -top-8 left-0 px-2 py-1 rounded text-xs font-bold whitespace-nowrap",
+                          isCommonSymbol
+                            ? "bg-green-500 text-white"
+                            : "bg-primary/70 text-primary-foreground"
+                        )}>
+                          {box.label} {Math.round(box.confidence * 100)}%
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               )}
 
@@ -111,15 +147,6 @@ export const AIPureMode = ({
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 animate-pulse" />
               )}
             </div>
-
-            {/* Annotations */}
-            {!yoloMutation.isPending && yoloMutation.data && (
-              <div className="absolute top-4 right-4">
-                <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold">
-                  {t("commonSymbolDetected")}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Boutons d'action */}
@@ -145,6 +172,19 @@ export const AIPureMode = ({
 
         {/* Zone latérale - Résultats IA */}
         <div className="w-full lg:w-80 space-y-4">
+          {/* Symbole Commun en Premier */}
+          {!yoloMutation.isPending && yoloMutation.data && (
+            <div className="game-card p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-l-4 border-green-500">
+              <div className="text-center space-y-2">
+                <div className="text-4xl">✅</div>
+                <h3 className="text-xl font-bold text-green-600">
+                  {yoloMutation.data.result.label}
+                </h3>
+                <p className="text-xs text-muted-foreground">Symbole Commun</p>
+              </div>
+            </div>
+          )}
+
           <div className="game-card p-6 space-y-6">
             <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
               {t("aiResults")}

@@ -8,16 +8,19 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useTheme } from "@/hooks/useTheme";
 import dobbleImage from "@/assets/dobble.png";
 import dinoImage from "@/assets/dino.png";
 import nhumbertImage from "@/assets/nhumbert.png";
 import frayarImage from "@/assets/frayar.png";
+import { HUDFrame } from "@/components/hud/HUDFrame";
 
 const Home = () => {
   const navigate = useNavigate();
   const navigateWithLang = useNavigateWithLang();
   const { lang: urlLang } = useParams<{ lang: string }>();
   const { lang, setLang, t } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [showLegalModal, setShowLegalModal] = useState(false);
 
@@ -34,7 +37,7 @@ const Home = () => {
     navigate(`/${newLang}`, { replace: true });
   };
 
-  return (
+  const mainContent = (
     <div className="min-h-screen relative flex flex-col items-center justify-center p-6 overflow-hidden">
       <AnimatedBackground />
 
@@ -49,8 +52,30 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Language Selector */}
-        <div className="flex justify-end">
+        {/* Controls Row: Theme + Language */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          {/* Explicit Theme Toggle */}
+          <div className="flex bg-muted/30 p-1 rounded-2xl border border-primary/20 backdrop-blur-md shadow-inner">
+            <button
+              onClick={() => setTheme("modern")}
+              className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all duration-300 ${theme === "modern"
+                ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                }`}
+            >
+              MODERN
+            </button>
+            <button
+              onClick={() => setTheme("cyberpunk")}
+              className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all duration-300 ${theme === "cyberpunk"
+                ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                }`}
+            >
+              CYBERPUNK
+            </button>
+          </div>
+
           <LanguageSelector currentLang={lang} onLanguageChange={handleLanguageChange} />
         </div>
 
@@ -196,6 +221,8 @@ const Home = () => {
       </Dialog>
     </div>
   );
+
+  return <HUDFrame>{mainContent}</HUDFrame>;
 };
 
 export default Home;

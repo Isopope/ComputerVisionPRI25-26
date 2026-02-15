@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, useSearchParams } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { ThemeProvider } from "@/hooks/useTheme";
 import { LanguageLayout } from "@/components/LanguageLayout";
 import { LanguageRedirect } from "@/components/LanguageRedirect";
 import Home from "./pages/Home";
@@ -26,28 +27,30 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <LanguageProvider>
-        <Toaster />
-        <Sonner />
-        <HashRouter>
-          <Routes>
-            {/* Root redirects to default language */}
-            <Route path="/" element={<LanguageRedirect />} />
+      <ThemeProvider>
+        <LanguageProvider>
+          <Toaster />
+          <Sonner />
+          <HashRouter>
+            <Routes>
+              {/* Root redirects to default language */}
+              <Route path="/" element={<LanguageRedirect />} />
 
-            {/* All routes nested under /:lang */}
-            <Route path="/:lang" element={<LanguageLayout />}>
-              <Route index element={<Home />} />
-              <Route path="mode" element={<ModeSelection />} />
-              <Route path="pregame" element={<PreGame />} />
-              <Route path="game" element={<GameRoute />} />
-              <Route path="explanation" element={<ExplanationSteps />} />
-            </Route>
+              {/* All routes nested under /:lang */}
+              <Route path="/:lang" element={<LanguageLayout />}>
+                <Route index element={<Home />} />
+                <Route path="mode" element={<ModeSelection />} />
+                <Route path="pregame" element={<PreGame />} />
+                <Route path="game" element={<GameRoute />} />
+                <Route path="explanation" element={<ExplanationSteps />} />
+              </Route>
 
-            {/* Catch-all for 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </HashRouter>
-      </LanguageProvider>
+              {/* Catch-all for 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </HashRouter>
+        </LanguageProvider>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
